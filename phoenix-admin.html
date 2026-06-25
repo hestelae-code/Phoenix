@@ -194,6 +194,7 @@ body{padding-bottom:72px !important;}
       <button class="etab" data-sec="events">📅 Events</button>
       <button class="etab" data-sec="rules">📜 Rules</button>
       <button class="etab" data-sec="news">📢 News</button>
+      <button class="etab" data-sec="gallery">📸 Gallery</button>
       <button class="etab" data-sec="memberzone">🔒 Members Zone</button>
       <button class="etab" data-sec="ranking" id="rankingTab" style="display:none">🏆 State Ranking</button>
     </div>
@@ -229,6 +230,13 @@ body{padding-bottom:72px !important;}
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:'Fredoka';font-weight:600;font-size:.84rem;color:var(--ink-soft);">
           <input type="checkbox" id="fQuoteShow" style="width:18px;height:18px;accent-color:var(--fire);"> Show quote on page
         </label>
+      </div>
+      <div class="card">
+        <div class="slabel" style="margin-top:0;">🎖️ Custom rank names</div>
+        <p style="font-size:.82rem;color:var(--ink-soft);margin-bottom:14px;">Give each game rank a custom name and emoji. Leave blank to use the default (R1, R2…).</p>
+        <div id="rankNameFields">
+          <!-- Generated for R1-R5 -->
+        </div>
       </div>
       <div class="card">
         <div class="slabel" style="margin-top:0;">📨 Invite players</div>
@@ -333,7 +341,18 @@ body{padding-bottom:72px !important;}
       </div>
     </div>
 
-    <!-- MEMBERS ZONE (private) -->
+    <!-- GALLERY -->
+    <div class="esec" id="sec-gallery">
+      <div class="card">
+        <div class="slabel" style="margin-top:0;">📸 Alliance Gallery</div>
+        <p style="font-size:.82rem;color:var(--ink-soft);margin-bottom:14px;">Up to 6 images shown in the Gallery tab of your alliance page. Paste URLs or upload directly.</p>
+        <div id="galleryFields"></div>
+      </div>
+    </div>
+
+    <!-- RANK NAMES -->
+    <div class="esec" id="sec-ranknames" style="display:none"><!-- loaded dynamically in Identity tab --></div>
+
     <div class="esec" id="sec-memberzone">
       <div class="card">
         <div class="slabel" style="margin-top:0;">🔒 Private members area</div>
@@ -661,6 +680,76 @@ $('#tplRuleBtn').onclick=()=>applyTemplate('ruleList',ruleHTML,PXR_TPL.rules);
 $('#tplNewsBtn').onclick=()=>applyTemplate('newsList',newsHTML,PXR_TPL.news);
 $('#addLinkBtn').onclick=()=>addItem('memberLinkList',linkHTML);
 
+// ── GALLERY FIELDS (6 slots) ───────────────────────────────────
+const GALLERY_SLOTS=6;
+function buildGalleryFields(){
+  const wrap=$('#galleryFields');if(!wrap)return;
+  wrap.innerHTML='';
+  for(let i=0;i<GALLERY_SLOTS;i++){
+    const div=document.createElement('div');
+    div.style.cssText='margin-bottom:10px;';
+    div.innerHTML=`
+      <label style="font-family:'Fredoka';font-weight:600;font-size:.78rem;color:var(--ink-soft);display:block;margin-bottom:4px;">Photo ${i+1}</label>
+      <input id="fGalA${i}" placeholder="https://..." style="margin-bottom:4px;">
+      <button type="button" class="btn btn-ghost" id="ugal${i}" style="font-size:.78rem;padding:7px;">📤 Upload photo ${i+1}</button>
+      <input type="file" id="galFileA${i}" accept="image/*" style="display:none;">`;
+    wrap.appendChild(div);
+    // bind upload
+    (idx=>{
+      wrap.querySelector(`#ugal${idx}`).onclick=()=>wrap.querySelector(`#galFileA${idx}`).click();
+      wrap.querySelector(`#galFileA${idx}`).onchange=async(e)=>{
+        const file=e.target.files[0];if(!file||!currentUser)return;
+        const btn=wrap.querySelector(`#ugal${idx}`);const orig=btn.textContent;btn.textContent='Uploading…';btn.disabled=true;
+        try{
+          const ext=file.name.split('.').pop();
+          const path=`gallery/${editingAlliance?.tag||'al'}-${idx}-${Date.now()}.${ext}`;
+          const{error}=await sb.storage.from('Images').upload(path,file,{upsert:true});
+          if(error)throw error;
+          const{data}=sb.storage.from('Images').getPublicUrl(path);
+          wrap.querySelector(`#fGalA${idx}`).value=data.publicUrl;
+          toast('Photo uploaded ✓');
+        }catch(err){toast('Upload failed: '+err.message,true);}
+        btn.textContent=orig;btn.disabled=false;
+      };
+    })(i);
+  }
+}
+buildGalleryFields();
+
+function readGallery(){
+  return Array.from({length:GALLERY_SLOTS},(_,i)=>{
+    const el=document.querySelector(`#fGalA${i}`);
+    return el?el.value.trim():'';
+  }).filter(Boolean);
+}
+
+// ── RANK NAMES FIELDS (R1-R5) ─────────────────────────────────
+const RANKS=['R1','R2','R3','R4','R5'];
+function buildRankFields(){
+  const wrap=$('#rankNameFields');if(!wrap)return;
+  wrap.innerHTML='';
+  RANKS.forEach(r=>{
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:10px;';
+    div.innerHTML=`
+      <span style="font-family:'Fredoka';font-weight:700;font-size:.9rem;min-width:28px;color:var(--ice-deep);">${r}</span>
+      <input id="fRankIcon${r}" placeholder="🐇" style="width:52px;text-align:center;font-size:1.1rem;">
+      <input id="fRankName${r}" placeholder="Custom name (optional)" style="flex:1;">`;
+    wrap.appendChild(div);
+  });
+}
+buildRankFields();
+
+function readRankNames(){
+  const result={};
+  RANKS.forEach(r=>{
+    const icon=(document.querySelector(`#fRankIcon${r}`)?.value||'').trim();
+    const name=(document.querySelector(`#fRankName${r}`)?.value||'').trim();
+    if(icon||name)result[r]={icon,name};
+  });
+  return Object.keys(result).length?result:null;
+}
+
 // ── READ FORM ─────────────────────────────────────────────────
 function readLeaders(){
   return Array.from($('#leaderList').children).map(el=>({
@@ -750,6 +839,20 @@ function loadEditor(al){
   $('#fMemberNotes').value=mz.notes||'';
   $('#memberLinkList').innerHTML='';
   (mz.links||[]).forEach((l,i)=>{const d=document.createElement('div');d.innerHTML=linkHTML(i,l);$('#memberLinkList').appendChild(d.firstElementChild);});
+  // Gallery
+  const gal=Array.isArray(cfg.gallery)?cfg.gallery:[];
+  for(let i=0;i<GALLERY_SLOTS;i++){
+    const el=document.querySelector(`#fGalA${i}`);
+    if(el)el.value=gal[i]||'';
+  }
+  // Rank names
+  const rn=cfg.rankNames||{};
+  RANKS.forEach(r=>{
+    const icon=document.querySelector(`#fRankIcon${r}`);
+    const name=document.querySelector(`#fRankName${r}`);
+    if(icon)icon.value=rn[r]?.icon||'';
+    if(name)name.value=rn[r]?.name||'';
+  });
 
   // Preview link
   $('#previewLink').href=`phoenix-alliance.html?tag=${al.tag}`;
@@ -799,7 +902,9 @@ $('#saveBtn').onclick=async()=>{
         label:el.querySelector('.lk-label').value.trim(),
         url:el.querySelector('.lk-url').value.trim()
       })).filter(l=>l.label||l.url)
-    }
+    },
+    gallery:readGallery(),
+    rankNames:readRankNames()
   };
 
   const payload={
@@ -856,13 +961,17 @@ function memberRowHTML(i,m={}){
       <input placeholder="Governor ID" class="m-gid" value="${m.governor_id||''}">
       <select class="m-conf"><option value="false" ${!conf?'selected':''}>⏳ Pending</option><option value="true" ${conf?'selected':''}>✓ Confirmed</option></select>
     </div>
+    <div style="position:relative;">
+      <input placeholder="✨ Nickname (e.g. La Jefa)" class="m-nick" value="${(m.nickname||'').replace(/"/g,'&quot;')}" style="padding-right:${m.nickname_suggested&&!m.nickname?'90px':'12px'};">
+      ${m.nickname_suggested&&!m.nickname?`<button type="button" onclick="acceptNick(this,'${(m.nickname_suggested||'').replace(/'/g,"\\'")}')" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:4px 8px;font-size:.7rem;background:#eafaf0;border:1.5px solid #3da76e;border-radius:8px;color:#2d7a4e;font-family:'Fredoka';cursor:pointer;">Use: ${m.nickname_suggested}</button>`:''}
+    </div>
   </div>`;
 }
 async function loadMembersEditor(){
   if(!editingAlliance)return;
   const wrap=$('#memberRows');
   wrap.innerHTML='<p style="text-align:center;color:var(--muted);font-size:.84rem;padding:12px;">Loading…</p>';
-  const{data}=await sb.from('players').select('id,owner,name,governor_id,alliance_confirmed').eq('alliance_id',editingAlliance.id).order('created_at',{ascending:true});
+  const{data}=await sb.from('players').select('id,owner,name,governor_id,alliance_confirmed,nickname,nickname_suggested').eq('alliance_id',editingAlliance.id).order('created_at',{ascending:true});
   memberCache=data||[];
   wrap.innerHTML='';
   memberCache.forEach((m,i)=>{const d=document.createElement('div');d.innerHTML=memberRowHTML(i,m);wrap.appendChild(d.firstElementChild);});
@@ -877,11 +986,17 @@ function delMember(i){
 }
 $('#addMemberBtn').onclick=()=>{
   const wrap=$('#memberRows');
-  // clear "no members" placeholder
   if(wrap.querySelector('p'))wrap.innerHTML='';
   const i=wrap.children.length;
   const d=document.createElement('div');d.innerHTML=memberRowHTML(i,{});wrap.appendChild(d.firstElementChild);
 };
+
+function acceptNick(btn, suggested){
+  const row=btn.closest('.ditem');
+  const nickInput=row.querySelector('.m-nick');
+  if(nickInput){nickInput.value=suggested;nickInput.style.paddingRight='12px';}
+  btn.remove();
+}
 $('#saveMembersBtn').onclick=async()=>{
   hideErr('#memberErr');
   const btn=$('#saveMembersBtn');btn.textContent='Saving…';btn.disabled=true;
@@ -893,14 +1008,14 @@ $('#saveMembersBtn').onclick=async()=>{
     const name=row.querySelector('.m-name')?.value.trim();
     const gid=row.querySelector('.m-gid')?.value.trim();
     const conf=row.querySelector('.m-conf')?.value==='true';
+    const nick=row.querySelector('.m-nick')?.value.trim()||null;
     if(del&&id){const{error}=await sb.from('players').delete().eq('id',id);if(error)errors.push(error.message);continue;}
     if(!name)continue;
     if(id){
-      const{error}=await sb.from('players').update({name,governor_id:gid,alliance_confirmed:conf}).eq('id',id);
+      const{error}=await sb.from('players').update({name,governor_id:gid,alliance_confirmed:conf,nickname:nick,nickname_suggested:null}).eq('id',id);
       if(error)errors.push(error.message);
     }else{
-      // manual member — no owner, linked to this alliance
-      const{error}=await sb.from('players').insert({name,governor_id:gid,alliance_confirmed:conf,alliance_id:editingAlliance.id,state_id:editingAlliance.state_id||'3139',avatar:name.slice(0,2).toUpperCase()});
+      const{error}=await sb.from('players').insert({name,governor_id:gid,alliance_confirmed:conf,nickname:nick,alliance_id:editingAlliance.id,state_id:editingAlliance.state_id||'3139',avatar:name.slice(0,2).toUpperCase()});
       if(error)errors.push(error.message);
     }
   }

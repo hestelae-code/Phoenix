@@ -135,6 +135,12 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 .badge .bt{font-size:.6rem;color:var(--muted);margin-top:3px;font-family:'Fredoka';font-weight:600;}
 .badge.manual .bt{color:var(--gold-deep);}
 .manual-note{margin:10px 24px 0;font-size:.74rem;color:var(--muted);font-style:italic;}
+  .premium-card{margin:0 24px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);border:2px solid #e94560;border-radius:18px;padding:22px 20px;text-align:center;box-shadow:0 8px 32px rgba(233,69,96,.25);}
+  .pc-icon{font-size:2rem;margin-bottom:8px;}
+  .pc-title{font-family:"Baloo 2";font-weight:800;font-size:1.1rem;color:#fff;margin-bottom:8px;}
+  .pc-text{font-size:.84rem;color:rgba(255,255,255,.8);line-height:1.5;margin-bottom:16px;}
+  .pc-text b{color:#e94560;}
+  .pc-btn{display:block;background:linear-gradient(180deg,#25D366,#128C7E);color:#fff;font-family:"Fredoka";font-weight:700;font-size:1rem;padding:13px 20px;border-radius:12px;text-decoration:none;box-shadow:0 4px 0 #0a6047;}
 .power-row{margin:0 24px;padding:14px 18px;background:#fff;border:2px dashed var(--ice);border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .power-val{font-family:'Baloo 2';font-weight:800;font-size:1.7rem;color:var(--ink);}
 .reveal-btn{font-size:.74rem;font-weight:600;color:var(--panel-blue-d);background:#fff;border:2px solid var(--panel-edge);padding:7px 13px;border-radius:11px;box-shadow:0 2px 0 var(--panel-edge);font-family:'Fredoka';}
@@ -259,9 +265,32 @@ input,textarea,select{font-family:'Inter',sans-serif;}
       </div>
     </div>
     <div class="field"><label data-i18n="f.bio">About me</label><textarea id="fBio" placeholder="One line about you…" maxlength="160"></textarea></div>
+    <div class="field">
+      <label>✨ Suggest a nickname</label>
+      <input id="fNickSuggest" placeholder="e.g. La Jefa, El Ogro del Pantano…" maxlength="40">
+      <div class="hint" id="nickStatusHint"></div>
+    </div>
     <div class="field"><label data-i18n="help.label">Available to help with</label>
       <input type="text" id="fHelp" placeholder="e.g. New players, SvS formations, translation">
       <div class="hint">"You grow, I grow, we grow." — If you help, say so here.</div>
+    </div>
+    <div class="field">
+      <label>🖼️ Profile banner</label>
+      <input type="url" id="fBannerUrl" placeholder="Paste image URL for banner (optional)">
+      <button type="button" id="uploadBannerBtn" style="width:100%;padding:9px;border:2px dashed var(--panel-edge);background:none;border-radius:10px;color:var(--ink-soft);font-family:'Fredoka';font-weight:600;font-size:.82rem;cursor:pointer;margin-top:6px;">📤 Upload banner</button>
+      <input type="file" id="bannerFile" accept="image/*" style="display:none;">
+    </div>
+    <div class="field">
+      <label>📸 Gallery (up to 3 photos)</label>
+      <input type="url" id="fGal1" placeholder="Photo 1 URL">
+      <button type="button" id="uploadGal1Btn" style="width:100%;padding:7px;border:2px dashed var(--panel-edge);background:none;border-radius:8px;color:var(--ink-soft);font-family:'Fredoka';font-weight:600;font-size:.78rem;cursor:pointer;margin:4px 0 8px;">📤 Upload photo 1</button>
+      <input type="file" id="galFile1" accept="image/*" style="display:none;">
+      <input type="url" id="fGal2" placeholder="Photo 2 URL">
+      <button type="button" id="uploadGal2Btn" style="width:100%;padding:7px;border:2px dashed var(--panel-edge);background:none;border-radius:8px;color:var(--ink-soft);font-family:'Fredoka';font-weight:600;font-size:.78rem;cursor:pointer;margin:4px 0 8px;">📤 Upload photo 2</button>
+      <input type="file" id="galFile2" accept="image/*" style="display:none;">
+      <input type="url" id="fGal3" placeholder="Photo 3 URL">
+      <button type="button" id="uploadGal3Btn" style="width:100%;padding:7px;border:2px dashed var(--panel-edge);background:none;border-radius:8px;color:var(--ink-soft);font-family:'Fredoka';font-weight:600;font-size:.78rem;cursor:pointer;margin:4px 0 0;">📤 Upload photo 3</button>
+      <input type="file" id="galFile3" accept="image/*" style="display:none;">
     </div>
     <div class="form-actions">
       <button class="btn btn-fire" id="saveBtn" style="flex:1" data-i18n="save">Save my page</button>
@@ -280,7 +309,11 @@ input,textarea,select{font-family:'Inter',sans-serif;}
     <div class="head">
       <div class="avatar" id="vAvatar">?</div>
       <div class="name-row">
-        <div><h1 id="vName">—</h1><div class="gid" id="vGid">ID —</div></div>
+        <div>
+          <h1 id="vName">—</h1>
+          <div id="vNickname" style="display:none;font-family:'Fredoka';font-weight:600;font-size:.95rem;color:var(--acc);margin-top:2px;"></div>
+          <div class="gid" id="vGid">ID —</div>
+        </div>
         <button class="btn btn-ghost btn-sm" id="editBtn" data-i18n="edit">Edit</button>
       </div>
       <div class="meta" id="vMeta"></div>
@@ -295,7 +328,11 @@ input,textarea,select{font-family:'Inter',sans-serif;}
     <div class="section-t" data-i18n="sec.badges">Badges</div>
     <div class="badge-grid" id="vBadges"></div>
     <div class="manual-note" data-i18n="badges.note">Special badges are awarded by leaders (R5 + R4).</div>
-    
+    <div id="vGallery" style="display:none;margin:16px 24px 0;">
+      <div class="section-t">📸 Gallery</div>
+      <div id="vGalleryGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;"></div>
+    </div>
+    <div id="premiumUpsell" style="display:none;margin-top:18px;"></div>
     <div class="foot-actions">
       <button class="btn btn-fire btn-sm" id="editBtn2" data-i18n="edit.long">Edit my page</button>
       <button class="btn btn-ghost btn-sm" id="browseBtnView">👥 <span data-i18n="dir.browse">Browse players</span></button>
@@ -340,7 +377,7 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 
 <nav class="botnav">
   <a href="phoenix-state.html"><span class="nav-ic">🌍</span>3139</a>
-  <a href="phoenix-alliance.html">PXR</a>
+  <a href="phoenix-alliance.html" id="navAllianceBtn"><span class="nav-ic" id="navAllianceIc">🏰</span><span id="navAllianceTag">Alliance</span></a>
   <a href="phoenix-profile.html" class="active"><span class="nav-ic">🚪</span>Entrar</a>
 </nav>
 
@@ -438,6 +475,32 @@ $('#avatarFile').addEventListener('change',async(e)=>{
   }catch(err){console.error('Upload failed:',err);toast('Upload failed: '+err.message,true);}
   btn.textContent=orig;btn.disabled=false;
 });
+
+// ── BANNER & GALLERY UPLOADS ───────────────────────────────────
+async function uploadToStorage(file, folder, targetInput, btnEl){
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('Image too large (max 5MB)',true);return;}
+  if(!currentUser){toast('Please sign in first',true);return;}
+  const orig=btnEl.textContent; btnEl.textContent='Uploading…'; btnEl.disabled=true;
+  try{
+    const ext=file.name.split('.').pop().toLowerCase();
+    const path=`${folder}/${currentUser.id}-${Date.now()}.${ext}`;
+    const{error}=await sb.storage.from('Images').upload(path,file,{upsert:true});
+    if(error)throw error;
+    const{data}=sb.storage.from('Images').getPublicUrl(path);
+    $(targetInput).value=data.publicUrl;
+  }catch(err){toast('Upload failed: '+err.message,true);}
+  btnEl.textContent=orig; btnEl.disabled=false;
+}
+$('#uploadBannerBtn').onclick=()=>$('#bannerFile').click();
+$('#bannerFile').addEventListener('change',e=>uploadToStorage(e.target.files[0],'banners','#fBannerUrl',$('#uploadBannerBtn')));
+$('#uploadGal1Btn').onclick=()=>$('#galFile1').click();
+$('#galFile1').addEventListener('change',e=>uploadToStorage(e.target.files[0],'gallery','#fGal1',$('#uploadGal1Btn')));
+$('#uploadGal2Btn').onclick=()=>$('#galFile2').click();
+$('#galFile2').addEventListener('change',e=>uploadToStorage(e.target.files[0],'gallery','#fGal2',$('#uploadGal2Btn')));
+$('#uploadGal3Btn').onclick=()=>$('#galFile3').click();
+$('#galFile3').addEventListener('change',e=>uploadToStorage(e.target.files[0],'gallery','#fGal3',$('#uploadGal3Btn')));
+
 $('#fName').addEventListener('input',updatePreview);
 
 // ── POWER TOGGLE ──────────────────────────────────────────────
@@ -508,6 +571,7 @@ async function loadProfile(){
 // ── INVITE LINK ───────────────────────────────────────────────
 // phoenix-profile.html?invite=PXR → preselect that alliance
 const INVITE_TAG=new URLSearchParams(location.search).get('invite');
+const isViewMode=!!new URLSearchParams(location.search).get('view');
 
 function populateAlliances(){
   const sel=$('#fAlliance');
@@ -531,6 +595,19 @@ function openEditor(){
   $('#fCountry').value=p.country||'';
   $('#fBio').value=p.bio||'';
   $('#fHelp').value=p.help_with||'';
+  // Nickname suggestion
+  $('#fNickSuggest').value=p.nickname_suggested||'';
+  const hint=$('#nickStatusHint');
+  if(hint){
+    if(p.nickname)hint.textContent=`✓ Your nickname "${p.nickname}" is active.`;
+    else if(p.nickname_suggested)hint.textContent=`⏳ Suggestion "${p.nickname_suggested}" pending leader approval.`;
+    else hint.textContent='Your leader can approve it and give you an official nickname.';
+  }
+  $('#fBannerUrl').value=p.banner_url||'';
+  const gal=Array.isArray(p.gallery)?p.gallery:[];
+  $('#fGal1').value=gal[0]||'';
+  $('#fGal2').value=gal[1]||'';
+  $('#fGal3').value=gal[2]||'';
   powerOn=false;
   
   
@@ -549,7 +626,7 @@ $('#saveBtn').addEventListener('click',async()=>{
   const photoUrl=$('#fPhotoUrl').value.trim();
   const ini=($('#fAvatar').value.trim()||name.slice(0,2)).toUpperCase();
   const avatarVal=photoUrl||ini;
-  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:'3139',bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false};
+  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:'3139',bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false,banner_url:$('#fBannerUrl').value.trim()||null,gallery:[$('#fGal1').value.trim(),$('#fGal2').value.trim(),$('#fGal3').value.trim()].filter(Boolean),nickname_suggested:$('#fNickSuggest').value.trim()||null};
   const btn=$('#saveBtn');btn.textContent='...';btn.disabled=true;
   const{error}=currentProfile?await sb.from('players').update(pd).eq('owner',currentUser.id):await sb.from('players').insert(pd);
   btn.textContent=T('save');btn.disabled=false;
@@ -572,14 +649,65 @@ function renderView(p){
   $('#vName').textContent=p.name||'—';
   $('#vGid').textContent=p.governor_id?'ID '+p.governor_id:'ID —';
   const meta=$('#vMeta');meta.innerHTML='';
-  if(p.alliance_id){const a=alliances.find(x=>x.id===p.alliance_id);const lbl=a?`[${a.tag}] ${a.name}`:'—';meta.innerHTML+=p.alliance_confirmed?`<span class="chip alliance">🔥 ${lbl}</span>`:`<span class="chip pending">⏳ ${lbl} · ${T('pending')}</span>`;}
+  const myAlliance=alliances.find(x=>x.id===p.alliance_id);
+  if(p.alliance_id){const lbl=myAlliance?`[${myAlliance.tag}] ${myAlliance.name}`:'—';meta.innerHTML+=p.alliance_confirmed?`<span class="chip alliance">🔥 ${lbl}</span>`:`<span class="chip pending">⏳ ${lbl} · ${T('pending')}</span>`;}
   if(p.languages)meta.innerHTML+=`<span class="chip">🗣️ ${p.languages}</span>`;
   if(p.country)meta.innerHTML+=`<span class="chip">🕓 ${p.country}</span>`;
   if(p.bio){$('#vBioWrap').classList.remove('hidden');$('#vBio').textContent=p.bio;}else $('#vBioWrap').classList.add('hidden');
   if(p.help_with){$('#vHelpWrap').classList.remove('hidden');$('#vHelp').textContent=p.help_with;}else $('#vHelpWrap').classList.add('hidden');
   const bg=$('#vBadges');bg.innerHTML='';
   badges.forEach(b=>{const earned=playerBadges.includes(b.id);if(b.is_manual&&!earned)return;bg.innerHTML+=`<div class="badge ${earned?'':'locked'} ${b.is_manual?'manual':''}"><div class="ic">${b.icon}</div><div class="bn">${b.name}</div><div class="bt">${earned?'✓':'—'}</div></div>`;});
-  
+
+  // Nickname (approved by leader)
+  const nickEl=$('#vNickname');
+  if(nickEl){
+    if(p.nickname){nickEl.textContent=`"${p.nickname}"`;nickEl.style.display='';}
+    else nickEl.style.display='none';
+  }
+  // Banner
+  const bannerEl=document.querySelector('#view .banner');
+  if(bannerEl){
+    if(p.banner_url){bannerEl.style.backgroundImage=`url('${p.banner_url}')`;bannerEl.style.height='120px';bannerEl.style.backgroundSize='cover';bannerEl.style.backgroundPosition='center';}
+    else{bannerEl.style.backgroundImage='';bannerEl.style.height='';}
+  }
+  // Gallery
+  const gal=Array.isArray(p.gallery)?p.gallery.filter(Boolean):[];
+  const vGal=$('#vGallery');const vGrid=$('#vGalleryGrid');
+  if(vGal&&vGrid){
+    if(gal.length){
+      vGal.style.display='';
+      vGrid.innerHTML=gal.map(url=>`<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid var(--panel-edge);" onerror="this.style.display='none'">`).join('');
+    }else vGal.style.display='none';
+  }
+  // Update nav alliance button with player's actual alliance
+  if(myAlliance){
+    const navBtn=$('#navAllianceBtn');
+    const navTag=$('#navAllianceTag');
+    const navIc=$('#navAllianceIc');
+    if(navTag)navTag.textContent=myAlliance.tag||'Alliance';
+    if(navBtn)navBtn.href=`phoenix-alliance.html?tag=${myAlliance.tag}`;
+    const logoUrl=myAlliance.config?.logoUrl||'';
+    if(navIc){
+      if(logoUrl)navIc.innerHTML=`<img src="${logoUrl}" style="width:1.5rem;height:1.5rem;border-radius:6px;object-fit:cover;">`;
+      else navIc.textContent='🏰';
+    }
+  }
+
+  // Premium upsell — only if viewing own profile, R5, alliance not showcase
+  const upsell=$('#premiumUpsell');
+  if(upsell && !isViewMode && p.game_rank==='R5' && myAlliance && !myAlliance.is_showcase){
+    const tag=myAlliance.tag||'your alliance';
+    const name=p.name||'R5';
+    const msg=encodeURIComponent(`Hi Hestelae! I'm ${name}, R5 of [${tag}]. I'd like to activate the admin panel for my alliance page. Can we sort it out?`);
+    upsell.innerHTML=`
+      <div class="premium-card">
+        <div class="pc-icon">⚡</div>
+        <div class="pc-title">Activate your alliance panel</div>
+        <div class="pc-text">As R5 of <b>[${tag}]</b> you can manage your alliance page — customize design, events, rules, member zone and more.</div>
+        <a class="pc-btn" href="https://wa.me/34624343161?text=${msg}" target="_blank">💬 Request access · $5</a>
+      </div>`;
+    upsell.style.display='';
+  }else if(upsell){upsell.style.display='none';}
 }
 
 
