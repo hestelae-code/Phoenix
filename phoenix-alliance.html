@@ -141,11 +141,44 @@ async function maybeLoadFromSupabase(){
   CONFIG.news=cfg.news||(isPXR?CONFIG.news:[]);
   CONFIG.theme=cfg.theme||'light';
   CONFIG.logoUrl=cfg.logoUrl||'';
+  CONFIG.memberZone=cfg.memberZone||null;
+  CONFIG._allianceId=data.id;
   // update page title
   document.title=`[${data.tag}] ${data.name} · Phoenix`;
   // update botnav alliance link to reflect current tag
   const navAlliance=document.querySelector('.botnav a:nth-child(2) .ic');
   if(navAlliance) navAlliance.parentElement.querySelector('span:not(.ic)');
+  // Check if the logged-in user is a confirmed member → show private zone
+  checkMemberZone();
+}
+
+async function checkMemberZone(){
+  try{
+    const{data:{session}}=await _sb.auth.getSession();
+    if(!session?.user)return; // not logged in → no private zone
+    const{data:rows}=await _sb.from('players').select('alliance_id,alliance_confirmed')
+      .eq('owner',session.user.id).order('created_at',{ascending:false}).limit(1);
+    const me=rows&&rows[0];
+    const isMember=me && me.alliance_id===CONFIG._allianceId && me.alliance_confirmed;
+    if(isMember && CONFIG.memberZone) renderMemberZone(CONFIG.memberZone);
+  }catch(e){console.warn('Member zone check skipped:',e);}
+}
+
+function renderMemberZone(mz){
+  const box=document.getElementById('memberZoneCard');
+  if(!box)return;
+  let html='';
+  if(mz.discord) html+=`<a href="${mz.discord}" target="_blank" class="mz-discord">💬 Join our Discord</a>`;
+  if(mz.notes) html+=`<div class="mz-notes">${mz.notes.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
+  if(mz.links&&mz.links.length){
+    html+='<div class="mz-links">';
+    mz.links.forEach(l=>{ if(l.url) html+=`<a href="${l.url}" target="_blank" class="mz-link">🔗 ${(l.label||l.url).replace(/</g,'&lt;')}</a>`; });
+    html+='</div>';
+  }
+  if(html){
+    box.innerHTML='<div class="section-label">🔒 Members only</div><div class="card mz-card">'+html+'</div>';
+    box.style.display='';
+  }
 }
 </script>
 
@@ -311,6 +344,13 @@ async function maybeLoadFromSupabase(){
   .card h3 .dot{width:5px; height:18px; border-radius:3px; background:linear-gradient(180deg,var(--acc),var(--acc-d));}
   .card p{font-size:.9rem; color:var(--ink-soft);}
   .section-label{font-family:'Fredoka'; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--ice-deep); margin:4px 2px 12px;}
+  /* Members-only private zone */
+  .mz-card{display:flex;flex-direction:column;gap:10px;border:2px solid var(--acc)!important;background:linear-gradient(180deg,rgba(255,122,46,.06),transparent)!important;}
+  .mz-discord{display:block;text-align:center;padding:13px;background:linear-gradient(180deg,#5865F2,#4752c4);color:#fff;border-radius:12px;font-family:'Fredoka';font-weight:600;text-decoration:none;box-shadow:0 3px 0 #3a44a0;}
+  .mz-notes{background:var(--panel);border:1px solid var(--panel-edge);border-radius:10px;padding:12px 14px;font-size:.9rem;color:var(--ink);line-height:1.55;}
+  .mz-links{display:flex;flex-direction:column;gap:7px;}
+  .mz-link{display:block;padding:11px 14px;background:var(--white);border:2px solid var(--panel-edge);border-radius:11px;color:var(--ice-deep);font-family:'Fredoka';font-weight:600;font-size:.86rem;text-decoration:none;}
+  .mz-link:active{transform:translateY(1px);}
 
   .rrow{display:flex; align-items:center; gap:12px; padding:11px 14px; background:#fff; border:2px solid var(--panel-edge); border-radius:14px; margin-bottom:9px; box-shadow:0 2px 0 var(--panel-edge);}
   .rrow .av{width:42px; height:42px; border-radius:12px; flex:none; background:linear-gradient(135deg,#ffd9a8,#9ecef0); display:flex; align-items:center; justify-content:center; font-family:'Baloo 2'; font-weight:800; color:#fff; font-size:1.1rem;}
@@ -412,6 +452,7 @@ body{padding-bottom:72px !important;}
       <div class="qt" id="quoteTr"></div>
       <div class="by" id="quoteBy"></div>
     </div>
+    <div id="memberZoneCard" style="display:none;margin-top:18px;"></div>
   </div>
 
   <div class="panel" id="tab-roster">

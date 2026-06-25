@@ -194,6 +194,7 @@ body{padding-bottom:72px !important;}
       <button class="etab" data-sec="events">📅 Events</button>
       <button class="etab" data-sec="rules">📜 Rules</button>
       <button class="etab" data-sec="news">📢 News</button>
+      <button class="etab" data-sec="memberzone">🔒 Members Zone</button>
       <button class="etab" data-sec="ranking" id="rankingTab" style="display:none">🏆 State Ranking</button>
     </div>
 
@@ -308,6 +309,7 @@ body{padding-bottom:72px !important;}
         <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:14px;">Event schedule shown on your alliance page.</p>
         <div class="dlist" id="eventList"></div>
         <button class="add-btn" id="addEventBtn">+ Add event</button>
+        <button type="button" class="btn btn-ghost" id="tplEventBtn" style="margin-top:8px;font-size:.8rem;">📋 Use PXR template</button>
       </div>
     </div>
 
@@ -317,6 +319,7 @@ body{padding-bottom:72px !important;}
         <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:14px;">Alliance rules. Each block = one rule card on the page.</p>
         <div class="dlist" id="ruleList"></div>
         <button class="add-btn" id="addRuleBtn">+ Add rule</button>
+        <button type="button" class="btn btn-ghost" id="tplRuleBtn" style="margin-top:8px;font-size:.8rem;">📋 Use PXR template</button>
       </div>
     </div>
 
@@ -326,6 +329,29 @@ body{padding-bottom:72px !important;}
         <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:14px;">Announcements and news. Newest first.</p>
         <div class="dlist" id="newsList"></div>
         <button class="add-btn" id="addNewsBtn">+ Add announcement</button>
+        <button type="button" class="btn btn-ghost" id="tplNewsBtn" style="margin-top:8px;font-size:.8rem;">📋 Use PXR template</button>
+      </div>
+    </div>
+
+    <!-- MEMBERS ZONE (private) -->
+    <div class="esec" id="sec-memberzone">
+      <div class="card">
+        <div class="slabel" style="margin-top:0;">🔒 Private members area</div>
+        <p style="font-size:.82rem;color:var(--ink-soft);margin-bottom:14px;">Only confirmed members of this alliance can see this. Perfect for your Discord invite, useful links, and internal notes.</p>
+        <div class="field">
+          <label>💬 Discord invite link</label>
+          <input id="fDiscord" placeholder="https://discord.gg/...">
+        </div>
+        <div class="field">
+          <label>📝 Internal notes (free text)</label>
+          <textarea id="fMemberNotes" rows="5" placeholder="Anything members should know — reminders, meeting times, internal info..."></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="slabel" style="margin-top:0;">🔗 Useful links</div>
+        <p style="font-size:.82rem;color:var(--ink-soft);margin-bottom:12px;">Links to trackers, guides, spreadsheets, etc.</p>
+        <div class="dlist" id="memberLinkList"></div>
+        <button class="add-btn" id="addLinkBtn">+ Add link</button>
       </div>
     </div>
 
@@ -574,6 +600,13 @@ function newsHTML(i,n={}){
     <textarea placeholder="Message..." class="n-msg">${n.msg||''}</textarea>
   </div>`;}
 
+function linkHTML(i,l={}){
+  return `<div class="ditem" data-i="${i}">
+    <div class="ditem-header"><span class="dtag">Link ${i+1}</span><button class="del-btn" onclick="delItem('memberLinkList',${i})">✕</button></div>
+    <input placeholder="Label (e.g. Bear Trap Tracker)" class="lk-label" value="${(l.label||'').replace(/"/g,'&quot;')}">
+    <input placeholder="https://..." class="lk-url" value="${(l.url||'').replace(/"/g,'&quot;')}">
+  </div>`;}
+
 function delItem(listId,idx){
   const list=document.getElementById(listId);
   list.children[idx].remove();
@@ -595,6 +628,38 @@ $('#addLeaderBtn').onclick=()=>addItem('leaderList',leaderHTML);
 $('#addEventBtn').onclick=()=>addItem('eventList',eventHTML);
 $('#addRuleBtn').onclick=()=>addItem('ruleList',ruleHTML);
 $('#addNewsBtn').onclick=()=>addItem('newsList',newsHTML);
+
+// ── PXR TEMPLATES ─────────────────────────────────────────────
+const PXR_TPL={
+  events:[
+    {icon:"🐻",name:"Bear Trap",freq:"Daily",t1:"12:30",t2:"19:00"},
+    {icon:"⚒️",name:"Foundry",freq:"Weekly",t1:"14:00",t2:"19:00"},
+    {icon:"🏞️",name:"Canyon Clash",freq:"Weekly",t1:"14:00",t2:"19:00"},
+    {icon:"😡",name:"Crazy Joe",freq:"Rotating",t1:"14:00",t2:"19:00"},
+    {icon:"🌍",name:"SvS",freq:"Seasonal",t1:"Prep + battle",t2:""}
+  ],
+  rules:[
+    {title:"Participation",text:"Show up and play with points: +1. No-show or 0 points: −1. Consistent absence puts your spot at risk."},
+    {title:"Discipline",text:"Attacking a merc with more than 1 troop: −15. Canyon boot: −20. Reaching −25 means removal risk."},
+    {title:"Heroes & formations",text:"Bear Trap: valid heroes only. Canyon/Foundry: center lane, set ratio, follow your officer's call."}
+  ],
+  news:[
+    {date:"This week",text:"SvS prep underway — save your speedups and gather as a team."},
+    {date:"Reminder",text:"Bear Trap rallies at 12:30 & 19:00 UTC. Join the main rally, never solo."},
+    {date:"Welcome",text:"New members: create your Phoenix page so leaders can confirm you."}
+  ]
+};
+function applyTemplate(listId,htmlFn,data){
+  const wrap=$('#'+listId);
+  if(wrap.children.length && !confirm('This will replace the current entries with the PXR template. Continue?'))return;
+  wrap.innerHTML='';
+  data.forEach((item,i)=>{const d=document.createElement('div');d.innerHTML=htmlFn(i,item);wrap.appendChild(d.firstElementChild);});
+  toast('PXR template loaded ✓');
+}
+$('#tplEventBtn').onclick=()=>applyTemplate('eventList',eventHTML,PXR_TPL.events);
+$('#tplRuleBtn').onclick=()=>applyTemplate('ruleList',ruleHTML,PXR_TPL.rules);
+$('#tplNewsBtn').onclick=()=>applyTemplate('newsList',newsHTML,PXR_TPL.news);
+$('#addLinkBtn').onclick=()=>addItem('memberLinkList',linkHTML);
 
 // ── READ FORM ─────────────────────────────────────────────────
 function readLeaders(){
@@ -679,6 +744,12 @@ function loadEditor(al){
   (cfg.rules||[]).forEach((r,i)=>{const d=document.createElement('div');d.innerHTML=ruleHTML(i,r);$('#ruleList').appendChild(d.firstElementChild);});
   $('#newsList').innerHTML='';
   (cfg.news||[]).forEach((n,i)=>{const d=document.createElement('div');d.innerHTML=newsHTML(i,n);$('#newsList').appendChild(d.firstElementChild);});
+  // Members Zone (private)
+  const mz=cfg.memberZone||{};
+  $('#fDiscord').value=mz.discord||'';
+  $('#fMemberNotes').value=mz.notes||'';
+  $('#memberLinkList').innerHTML='';
+  (mz.links||[]).forEach((l,i)=>{const d=document.createElement('div');d.innerHTML=linkHTML(i,l);$('#memberLinkList').appendChild(d.firstElementChild);});
 
   // Preview link
   $('#previewLink').href=`phoenix-alliance.html?tag=${al.tag}`;
@@ -720,7 +791,15 @@ $('#saveBtn').onclick=async()=>{
     accentDark:dark,
     accentShadow:shadow,
     theme:selectedTheme,
-    logoUrl:$('#fLogoUrl').value.trim()
+    logoUrl:$('#fLogoUrl').value.trim(),
+    memberZone:{
+      discord:$('#fDiscord').value.trim(),
+      notes:$('#fMemberNotes').value.trim(),
+      links:Array.from($('#memberLinkList').children).map(el=>({
+        label:el.querySelector('.lk-label').value.trim(),
+        url:el.querySelector('.lk-url').value.trim()
+      })).filter(l=>l.label||l.url)
+    }
   };
 
   const payload={
