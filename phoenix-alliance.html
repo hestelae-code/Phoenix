@@ -477,7 +477,7 @@ body{padding-bottom:72px !important;}
 
 <div class="shell">
   <div class="ahero">
-    <div class="acrest" id="acrest" style="display:flex;align-items:center;justify-content:center;font-family:Baloo 2,cursive;font-weight:800;font-size:2rem;color:var(--acc);background:rgba(255,255,255,.9);">PXR</div>
+    <div class="acrest" id="acrest"></div>
     <div class="atag" id="atag"></div>
     <div class="aname" id="aname"></div>
     <div class="amotto" id="amotto"></div>
@@ -639,21 +639,33 @@ function applyConfig(){
   CONFIG._rankLabel=rankLabel;
   $('#brandName').innerHTML = 'PHO<em>E</em>NIX';
   // Alliance crest: show logo image if URL, else show tag initials
-  const acrest=$('#acrest');
-  if(acrest){
+  // Alliance crest: show logo image if URL, else show tag initials
+  // Always find by id in case it was replaced
+  const acrestEl=document.getElementById('acrest')||document.getElementById('acrest_replaced');
+  const heroEl=document.querySelector('.ahero');
+  if(heroEl){
+    // Remove any previously inserted crest
+    const old=heroEl.querySelector('.acrest');
+    if(old)old.remove();
     if(c.logoUrl){
-      // Replace div with an actual img element
       const img=document.createElement('img');
       img.className='acrest'; img.id='acrest';
       img.src=c.logoUrl; img.alt=c.tag;
       img.onerror=()=>{
-        img.outerHTML=`<div class="acrest" id="acrest" style="display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-weight:800;font-size:2rem;color:var(--acc);background:rgba(255,255,255,.9);">${c.tag||''}</div>`;
+        img.remove();
+        const div=document.createElement('div');
+        div.className='acrest'; div.id='acrest';
+        div.textContent=c.tag||'';
+        div.style.cssText='display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:800;font-size:2rem;color:var(--acc);background:rgba(255,255,255,.9);';
+        heroEl.insertBefore(div,heroEl.firstChild);
       };
-      acrest.replaceWith(img);
+      heroEl.insertBefore(img,heroEl.firstChild);
     }else{
-      // No logo — show tag text, clear any PXR text
-      acrest.textContent=c.tag||'';
-      acrest.style.cssText='display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:800;font-size:2rem;color:var(--acc);background:rgba(255,255,255,.9);';
+      const div=document.createElement('div');
+      div.className='acrest'; div.id='acrest';
+      div.textContent=c.tag||'';
+      div.style.cssText='display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:800;font-size:2rem;color:var(--acc);background:rgba(255,255,255,.9);';
+      heroEl.insertBefore(div,heroEl.firstChild);
     }
   }
   $('#atag').textContent='['+c.tag+'] · State '+c.state;
