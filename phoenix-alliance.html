@@ -142,7 +142,11 @@ async function maybeLoadFromSupabase(){
   CONFIG.theme=cfg.theme||'light';
   CONFIG.logoUrl=cfg.logoUrl||'';
   CONFIG.memberZone=cfg.memberZone||null;
+  CONFIG.gallery=Array.isArray(cfg.gallery)?cfg.gallery:[];
+  CONFIG.rankNames=cfg.rankNames||null;
   CONFIG._allianceId=data.id;
+  // PXR premium background
+  if(data.tag==='PXR')document.body.classList.add('pxr-premium');
   // update page title
   document.title=`[${data.tag}] ${data.name} · Phoenix`;
   // update botnav alliance link to reflect current tag
@@ -297,6 +301,55 @@ function renderMemberZone(mz){
   body.dark .ahero::before{content:'❄️';position:absolute;top:14px;left:16px;font-size:1.2rem;opacity:.6;}
   /* make hero positioned for the decorations */
   .ahero{position:relative;}
+
+  /* ── PXR PREMIUM BACKGROUND ────────────────────────────────── */
+  body.pxr-premium{
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(255,122,46,.10), transparent 35%),
+      radial-gradient(ellipse at 80% 80%, rgba(79,163,216,.14), transparent 40%),
+      radial-gradient(ellipse at 50% -5%, #eaf6ff, transparent 55%),
+      linear-gradient(180deg, var(--sky), var(--sky2) 40%, #9cc9e8);
+  }
+  body.pxr-premium::before{
+    content:'';
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(circle 1px at 12% 18%, rgba(255,122,46,.35) 1px, transparent 0),
+      radial-gradient(circle 1.5px at 37% 8%, rgba(127,184,224,.5) 1.5px, transparent 0),
+      radial-gradient(circle 1px at 63% 22%, rgba(255,122,46,.25) 1px, transparent 0),
+      radial-gradient(circle 2px at 88% 12%, rgba(127,184,224,.4) 2px, transparent 0),
+      radial-gradient(circle 1px at 25% 45%, rgba(255,122,46,.2) 1px, transparent 0),
+      radial-gradient(circle 1.5px at 75% 55%, rgba(127,184,224,.3) 1.5px, transparent 0),
+      radial-gradient(circle 1px at 50% 70%, rgba(255,122,46,.15) 1px, transparent 0),
+      radial-gradient(circle 2px at 15% 80%, rgba(127,184,224,.25) 2px, transparent 0),
+      radial-gradient(circle 1.5px at 90% 75%, rgba(255,122,46,.2) 1.5px, transparent 0);
+    background-size: 100% 100%;
+  }
+  body.pxr-premium::after{
+    content:'❄️';
+    position:fixed; top:8%; right:5%; z-index:0; pointer-events:none;
+    font-size:4rem; opacity:.06;
+    animation:spinSlow 30s linear infinite;
+  }
+  @keyframes spinSlow{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  body.pxr-premium .shell{position:relative; z-index:1;}
+  body.pxr-premium .card{
+    background:rgba(255,255,255,.92)!important;
+    backdrop-filter:blur(6px);
+    border:1px solid rgba(191,224,244,.8)!important;
+  }
+  body.pxr-premium .ahero{
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,122,46,.22), transparent 60%),
+      radial-gradient(ellipse at 50% 130%, rgba(127,184,224,.45), transparent 55%),
+      linear-gradient(180deg, rgba(207,232,247,.6), rgba(169,212,238,.4));
+    border-bottom:2px solid rgba(191,224,244,.6);
+  }
+  body.pxr-premium .atag{
+    background:rgba(255,122,46,.12);
+    border:2px solid rgba(255,122,46,.4);
+    box-shadow:0 0 18px rgba(255,122,46,.15);
+  }
   ::selection{background:var(--acc); color:#fff;}
   h1,h2,h3,h4{font-family:'Baloo 2',cursive; color:var(--ink);}
   button{font-family:'Fredoka',sans-serif; cursor:pointer;}
@@ -351,6 +404,10 @@ function renderMemberZone(mz){
   .mz-links{display:flex;flex-direction:column;gap:7px;}
   .mz-link{display:block;padding:11px 14px;background:var(--white);border:2px solid var(--panel-edge);border-radius:11px;color:var(--ice-deep);font-family:'Fredoka';font-weight:600;font-size:.86rem;text-decoration:none;}
   .mz-link:active{transform:translateY(1px);}
+  /* Alliance gallery */
+  #galleryGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:2px solid var(--panel-edge);cursor:pointer;transition:transform .15s;}
+  #galleryGrid img:active{transform:scale(.97);}
+  #galleryGrid img.wide{grid-column:span 2;aspect-ratio:16/9;}
 
   .rrow{display:flex; align-items:center; gap:12px; padding:11px 14px; background:#fff; border:2px solid var(--panel-edge); border-radius:14px; margin-bottom:9px; box-shadow:0 2px 0 var(--panel-edge);}
   .rrow .av{width:42px; height:42px; border-radius:12px; flex:none; background:linear-gradient(135deg,#ffd9a8,#9ecef0); display:flex; align-items:center; justify-content:center; font-family:'Baloo 2'; font-weight:800; color:#fff; font-size:1.1rem;}
@@ -431,6 +488,7 @@ body{padding-bottom:72px !important;}
     <button class="tab" data-tab="events" data-i18n="tab.events">Events</button>
     <button class="tab" data-tab="rules" data-i18n="tab.rules">Rules</button>
     <button class="tab" data-tab="news" data-i18n="tab.news">News</button>
+    <button class="tab" data-tab="gallery">📸 Gallery</button>
     <button class="tab" data-tab="join" data-i18n="tab.join">Join</button>
   </div></div>
 
@@ -479,6 +537,12 @@ body{padding-bottom:72px !important;}
     <div id="newsList"></div>
   </div>
 
+  <div class="panel" id="tab-gallery">
+    <div class="section-label">📸 Alliance Gallery</div>
+    <div id="galleryGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;"></div>
+    <div id="galleryEmpty" style="text-align:center;padding:32px 16px;color:var(--muted);font-size:.88rem;display:none;">No photos yet.</div>
+  </div>
+
   <div class="panel" id="tab-join">
     <div class="card">
       <h3><span class="dot"></span><span data-i18n="jn.t">Join us</span></h3>
@@ -524,6 +588,27 @@ let LANG='en';
 const $=s=>document.querySelector(s);
 function setVar(n,v){ document.documentElement.style.setProperty(n,v); }
 
+// Returns custom rank label (emoji + name) or fallback to game rank
+function rankLabel(gameRank){
+  const rn=CONFIG.rankNames;
+  if(!rn||!gameRank)return gameRank||'';
+  const entry=rn[gameRank];
+  if(!entry)return gameRank;
+  return `${entry.icon||''} ${entry.name||gameRank}`.trim();
+}
+
+// Simple lightbox for gallery images
+function openLightbox(url){
+  let lb=document.getElementById('lbOverlay');
+  if(!lb){
+    lb=document.createElement('div');lb.id='lbOverlay';
+    lb.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    lb.onclick=()=>lb.remove();
+    document.body.appendChild(lb);
+  }
+  lb.innerHTML=`<img src="${url}" style="max-width:95vw;max-height:90vh;border-radius:12px;object-fit:contain;">`;
+}
+
 // apply CONFIG to the page
 function applyConfig(){
   const c=CONFIG;
@@ -533,9 +618,20 @@ function applyConfig(){
   const themeClass=c.theme&&c.theme!=='light'?c.theme:'';
   if(themeClass)document.body.classList.add(themeClass);
   setVar('--acc',c.accent); setVar('--acc-d',c.accentDark); setVar('--acc-sh',c.accentShadow);
-  // Alliance logo (URL) — override the default crest if provided
-  const logoEl=$('#acrest');
-  if(logoEl && c.logoUrl){logoEl.src=c.logoUrl;}
+  // Alliance gallery
+  const gg=$('#galleryGrid'), ge=$('#galleryEmpty');
+  if(gg){
+    const imgs=(c.gallery||[]).filter(Boolean);
+    if(imgs.length){
+      gg.innerHTML=imgs.map((url,i)=>`<img src="${url}" loading="lazy" class="${i===0&&imgs.length%2===1?'wide':''}" onclick="openLightbox('${url}')" onerror="this.style.display='none'">`).join('');
+      if(ge)ge.style.display='none';
+    }else{
+      gg.innerHTML='';
+      if(ge)ge.style.display='';
+    }
+  }
+  // Store rank names for use in renderDynamic
+  CONFIG._rankLabel=rankLabel;
   $('#brandName').innerHTML = 'PHO<em>E</em>NIX';
   $('#atag').textContent='['+c.tag+'] · State '+c.state;
   $('#aname').textContent=c.name;
@@ -579,7 +675,8 @@ function renderDynamic(){
     c.leaders.forEach(l=>{
       const roleTxt=(pack.t['role.'+l.role])||l.role;
       const ini=(l.name||'?').slice(0,1).toUpperCase();
-      rl.innerHTML+=`<div class="rrow"><div class="av">${ini}</div><div class="nm"><b>${l.name}</b><span>${roleTxt}</span></div><div class="rank ${l.rank==='R5'?'r5':''}">${l.rank}</div></div>`;
+      const rankLbl=rankLabel(l.rank);
+      rl.innerHTML+=`<div class="rrow"><div class="av">${ini}</div><div class="nm"><b>${l.name}</b><span>${roleTxt}</span></div><div class="rank ${l.rank==='R5'?'r5':''}">${rankLbl}</div></div>`;
     });
   }else rl.innerHTML=emptyMsg;
   // events
