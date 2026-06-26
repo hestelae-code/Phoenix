@@ -117,6 +117,92 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 .name-row h1{font-size:1.7rem;line-height:1.1;}
 .gid{font-family:'Fredoka';font-weight:500;font-size:.78rem;color:var(--muted);margin-top:3px;}
 .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+
+/* ── GOVERNOR-STYLE HERO LAYOUT ────────────────────────────── */
+.gov-hero{position:relative;overflow:hidden;padding-bottom:20px;}
+.gov-banner{
+  height:110px;
+  background:
+    radial-gradient(ellipse at 20% 20%,rgba(255,90,46,.4),transparent 55%),
+    radial-gradient(ellipse at 80% 80%,rgba(127,184,224,.35),transparent 55%),
+    linear-gradient(180deg,#a8d4f0,#c5e6f8);
+  border-bottom:2px solid rgba(255,255,255,.6);
+}
+.gov-banner.has-banner{background-size:cover;background-position:center;}
+/* 3-column grid: left badges | center | right badges */
+.gov-grid{
+  display:grid;
+  grid-template-columns:80px 1fr 80px;
+  gap:0;
+  margin-top:-52px;
+  padding:0 8px;
+  align-items:start;
+}
+/* Create the grid on .gov-hero children */
+.gov-hero .gov-side,.gov-hero .gov-center{margin-top:-52px;}
+.gov-hero{display:grid;grid-template-columns:76px 1fr 76px;align-items:start;}
+.gov-hero .gov-banner{grid-column:1/-1;margin-bottom:0;}
+/* Reset: after banner row, the 3 cols */
+.gov-hero{display:block;}
+.gov-layout{
+  display:grid;
+  grid-template-columns:76px 1fr 76px;
+  align-items:start;
+  padding:0 6px;
+  margin-top:-50px;
+}
+/* Simpler: use flex inside .gov-hero */
+.gov-slots{display:flex;align-items:flex-start;gap:4px;padding:0 4px;margin-top:-50px;}
+.gov-side{
+  display:flex;flex-direction:column;gap:6px;
+  padding-top:4px;
+  flex:0 0 72px;
+}
+.gov-slot{
+  width:68px;height:68px;
+  background:linear-gradient(180deg,#1a3452,#102236);
+  border:2px solid #3a6898;
+  border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 #061018,inset 0 1px 0 rgba(255,255,255,.07);
+  position:relative;overflow:hidden;
+  cursor:default;
+}
+.gov-slot::before{content:'';position:absolute;inset:0;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent);}
+.gov-slot.empty{
+  background:linear-gradient(180deg,#0d1e2e,#081218);
+  border-color:#1e3648;opacity:.55;
+}
+.gov-slot.gold{
+  background:linear-gradient(180deg,#3d2a05,#241800);
+  border-color:#c89020;
+  box-shadow:0 3px 0 #080500,0 0 10px rgba(255,165,0,.2);
+}
+.gov-slot .sic{font-size:1.7rem;line-height:1;}
+.gov-slot .snm{font-size:.46rem;color:#9ab8d0;font-family:'Fredoka';font-weight:600;line-height:1.1;text-align:center;margin-top:3px;padding:0 3px;}
+.gov-slot.gold .snm{color:#f0c040;}
+/* Stars row under slot icon (like gear quality) */
+.gov-slot .sstars{display:flex;gap:1px;justify-content:center;margin-top:2px;}
+.gov-slot .sstars span{font-size:.5rem;}
+.gov-center{
+  flex:1;
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:0;
+}
+.gov-avatar{
+  width:100px;height:100px;
+  border-radius:50%;
+  border:4px solid #fff;
+  background:linear-gradient(135deg,#ffd9a8,#9ecef0);
+  box-shadow:0 6px 20px -4px rgba(36,70,96,.55),0 0 0 2px rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Baloo 2';font-weight:800;font-size:2.4rem;color:#fff;
+  overflow:hidden;flex:none;
+}
+.gov-avatar img{width:100%;height:100%;object-fit:cover;}
+.gov-name-block{text-align:center;margin-top:10px;padding:0 4px;}
+.gov-name-block h1{font-size:1.3rem;line-height:1.15;}
+.gov-name-block .gid{text-align:center;}
 .chip{font-size:.74rem;font-family:'Fredoka';font-weight:600;background:#fff;border:2px solid var(--panel-edge);color:var(--ink-soft);padding:6px 12px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 0 var(--panel-edge);}
 .chip.alliance{background:linear-gradient(180deg,#fff3ec,#ffe2d2);border-color:#ffc4a3;color:var(--fire-deep);box-shadow:0 2px 0 #ffc4a3;}
 .chip.pending{background:linear-gradient(180deg,#fff8e8,#ffeec4);border-color:#ffdb8a;color:var(--gold-deep);box-shadow:0 2px 0 #ffdb8a;}
@@ -327,19 +413,28 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 <!-- OWN PROFILE VIEW -->
 <div id="view" class="hidden">
   <div class="pcard">
-    <div class="banner"></div>
-    <div class="head">
-      <div class="avatar" id="vAvatar">?</div>
-      <div class="name-row">
-        <div>
-          <h1 id="vName">—</h1>
-          <div id="vNickname" style="display:none;font-family:'Fredoka';font-weight:600;font-size:.95rem;color:var(--acc);margin-top:2px;"></div>
-          <div class="gid" id="vGid">ID —</div>
+    <!-- GOVERNOR-STYLE HERO: badges on sides, avatar center -->
+    <div class="gov-hero">
+      <div class="gov-banner" id="vBanner"></div>
+      <div style="display:flex;align-items:flex-start;padding:0 4px;margin-top:-52px;gap:4px;">
+        <!-- Left badge column -->
+        <div class="gov-side" id="vBadgesLeft"></div>
+        <!-- Center: avatar + name -->
+        <div class="gov-center">
+          <div class="gov-avatar" id="vAvatar">?</div>
+          <div class="gov-name-block">
+            <h1 id="vName">—</h1>
+            <div id="vNickname" style="display:none;font-family:'Fredoka';font-weight:600;font-size:.88rem;color:var(--fire);margin-top:2px;"></div>
+            <div class="gid" id="vGid">ID —</div>
+            <button class="btn btn-ghost btn-sm" id="editBtn" data-i18n="edit" style="margin-top:8px;">Edit</button>
+          </div>
         </div>
-        <button class="btn btn-ghost btn-sm" id="editBtn" data-i18n="edit">Edit</button>
+        <!-- Right badge column -->
+        <div class="gov-side" id="vBadgesRight"></div>
       </div>
-      <div class="meta" id="vMeta"></div>
     </div>
+    <!-- Stats row below hero -->
+    <div class="meta" id="vMeta" style="padding:0 20px 16px;"></div>
     <div id="vBioWrap" class="hidden"><div class="section-t" data-i18n="sec.about">About me</div><div class="bio-text" id="vBio"></div></div>
     <div id="vHelpWrap" class="hidden">
       <div class="help-box" style="margin:14px 24px 0;">
@@ -347,9 +442,12 @@ input,textarea,select{font-family:'Inter',sans-serif;}
         <div class="val" id="vHelp"></div>
       </div>
     </div>
-    <div class="section-t" data-i18n="sec.badges">Badges</div>
-    <div class="badge-grid" id="vBadges"></div>
-    <div class="manual-note" data-i18n="badges.note">Special badges are awarded by leaders (R5 + R4).</div>
+    <!-- All remaining badges below if more than 6 -->
+    <div id="vBadgesExtra" style="display:none;">
+      <div class="section-t" data-i18n="sec.badges">Badges</div>
+      <div class="badge-grid" id="vBadgesExtraGrid"></div>
+    </div>
+    <div class="manual-note" data-i18n="badges.note" style="margin-top:10px;">Special badges are awarded by leaders (R5 + R4).</div>
     <div id="vGallery" style="display:none;margin:16px 24px 0;">
       <div class="section-t">📸 Gallery</div>
       <div id="vGalleryGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;"></div>
@@ -374,12 +472,21 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 <div id="pubview" class="hidden">
   <button class="back-btn" id="pubBack">← <span data-i18n="back">Back</span></button>
   <div class="pcard">
-    <div class="banner"></div>
-    <div class="head">
-      <div class="avatar" id="pAvatar">?</div>
-      <div class="name-row"><div><h1 id="pName">—</h1><div class="gid" id="pGid">ID —</div></div></div>
-      <div class="meta" id="pMeta"></div>
+    <div class="gov-hero">
+      <div class="gov-banner" id="pBanner"></div>
+      <div style="display:flex;align-items:flex-start;padding:0 4px;margin-top:-52px;gap:4px;">
+        <div class="gov-side" id="pBadgesLeft"></div>
+        <div class="gov-center">
+          <div class="gov-avatar" id="pAvatar">?</div>
+          <div class="gov-name-block">
+            <h1 id="pName">—</h1>
+            <div class="gid" id="pGid">ID —</div>
+          </div>
+        </div>
+        <div class="gov-side" id="pBadgesRight"></div>
+      </div>
     </div>
+    <div class="meta" id="pMeta" style="padding:0 20px 16px;"></div>
     <div id="pBioWrap" class="hidden"><div class="section-t" data-i18n="sec.about">About me</div><div class="bio-text" id="pBio"></div></div>
     <div id="pHelpWrap" class="hidden">
       <div class="help-box" style="margin:14px 24px 0;">
@@ -387,9 +494,11 @@ input,textarea,select{font-family:'Inter',sans-serif;}
         <div class="val" id="pHelp"></div>
       </div>
     </div>
-    <div class="section-t" data-i18n="sec.badges">Badges</div>
-    <div class="badge-grid" id="pBadges"></div>
-    <div class="manual-note" data-i18n="badges.note">Special badges are awarded by leaders (R5 + R4).</div>
+    <div id="pBadgesExtra" style="display:none;">
+      <div class="section-t" data-i18n="sec.badges">Badges</div>
+      <div class="badge-grid" id="pBadgesExtraGrid"></div>
+    </div>
+    <div class="manual-note" data-i18n="badges.note" style="margin-top:10px;">Special badges are awarded by leaders (R5 + R4).</div>
   </div>
 </div>
 
@@ -398,9 +507,9 @@ input,textarea,select{font-family:'Inter',sans-serif;}
 <div class="toast" id="toast"></div>
 
 <nav class="botnav">
-  <a href="phoenix-state.html"><span class="nav-ic">🌍</span>3139</a>
-  <a href="phoenix-alliance.html" id="navAllianceBtn"><span class="nav-ic" id="navAllianceIc">🏰</span><span id="navAllianceTag">Alliance</span></a>
-  <a href="phoenix-profile.html" class="active"><span class="nav-ic">🚪</span>Entrar</a>
+  <a href="./phoenix-state.html"><span class="nav-ic">🌍</span>3139</a>
+  <a href="./phoenix-alliance.html" id="navAllianceBtn"><span class="nav-ic" id="navAllianceIc">🏰</span><span id="navAllianceTag">Alliance</span></a>
+  <a href="./phoenix-profile.html" class="active"><span class="nav-ic">🚪</span>Entrar</a>
 </nav>
 
 <script>
@@ -677,8 +786,8 @@ function renderView(p){
   if(p.country)meta.innerHTML+=`<span class="chip">🕓 ${p.country}</span>`;
   if(p.bio){$('#vBioWrap').classList.remove('hidden');$('#vBio').textContent=p.bio;}else $('#vBioWrap').classList.add('hidden');
   if(p.help_with){$('#vHelpWrap').classList.remove('hidden');$('#vHelp').textContent=p.help_with;}else $('#vHelpWrap').classList.add('hidden');
-  const bg=$('#vBadges');bg.innerHTML='';
-  badges.forEach(b=>{const earned=playerBadges.includes(b.id);if(b.is_manual&&!earned)return;bg.innerHTML+=`<div class="badge ${earned?'':'locked'} ${b.is_manual?'manual':''}"><div class="ic">${b.icon}</div><div class="bn">${b.name}</div><div class="bt">${earned?'✓':'—'}</div></div>`;});
+  // Governor-style: first 6 badges go into slots (3 left, 3 right). Rest go to extra grid.
+  renderGovBadges($('#vBadgesLeft'),$('#vBadgesRight'),$('#vBadgesExtra'),$('#vBadgesExtraGrid'),playerBadges);
 
   // Nickname (approved by leader)
   const nickEl=$('#vNickname');
@@ -687,7 +796,7 @@ function renderView(p){
     else nickEl.style.display='none';
   }
   // Banner
-  const bannerEl=document.querySelector('#view .banner');
+  const bannerEl=$('#vBanner');
   if(bannerEl){
     if(p.banner_url){bannerEl.style.backgroundImage=`url('${p.banner_url}')`;bannerEl.style.height='120px';bannerEl.style.backgroundSize='cover';bannerEl.style.backgroundPosition='center';}
     else{bannerEl.style.backgroundImage='';bannerEl.style.height='';}
@@ -771,8 +880,7 @@ async function loadPublicProfile(playerId){
   if(p.country)meta.innerHTML+=`<span class="chip">🕓 ${p.country}</span>`;
   if(p.bio){$('#pBioWrap').classList.remove('hidden');$('#pBio').textContent=p.bio;}else $('#pBioWrap').classList.add('hidden');
   if(p.help_with){$('#pHelpWrap').classList.remove('hidden');$('#pHelp').textContent=p.help_with;}else $('#pHelpWrap').classList.add('hidden');
-  const bg=$('#pBadges');bg.innerHTML='';
-  badges.forEach(b=>{const earned=earnedIds.includes(b.id);if(b.is_manual&&!earned)return;bg.innerHTML+=`<div class="badge ${earned?'':'locked'} ${b.is_manual?'manual':''}"><div class="ic">${b.icon}</div><div class="bn">${b.name}</div><div class="bt">${earned?'✓':'—'}</div></div>`;});
+  renderGovBadges($('#pBadgesLeft'),$('#pBadgesRight'),$('#pBadgesExtra'),$('#pBadgesExtraGrid'),earnedIds);
   show('pubview');
 }
 
@@ -782,6 +890,54 @@ $('#cancelBtn').onclick=()=>{currentProfile?show('view'):show('empty');};
 $('#browseBtn').onclick=loadDirectory;$('#browseBtnView').onclick=loadDirectory;
 $('#dirBack').onclick=()=>show(currentUser?'view':'empty');
 $('#pubBack').onclick=()=>show('directory');
+
+// ── GOVERNOR BADGE SLOT RENDERER ─────────────────────────────
+function renderGovBadges(leftEl, rightEl, extraWrap, extraGrid, earnedIds){
+  if(!leftEl||!rightEl) return;
+  leftEl.innerHTML=''; rightEl.innerHTML='';
+  if(extraGrid) extraGrid.innerHTML='';
+  if(extraWrap) extraWrap.style.display='none';
+
+  // Get all badges that should be shown (earned manual + all non-manual)
+  const visible=badges.filter(b=>!(b.is_manual&&!earnedIds.includes(b.id)));
+  const slotBadges=visible.slice(0,6);
+  const extraBadges=visible.slice(6);
+
+  function makeSlot(b){
+    const earned=earnedIds.includes(b.id);
+    const isGold=b.is_manual&&earned;
+    const div=document.createElement('div');
+    div.className=`gov-slot${isGold?' gold':''}${!earned?' locked':''}`;
+    div.title=b.name+(b.description?'
+'+b.description:'');
+    div.innerHTML=`<div class="sic">${b.icon}</div><div class="snm">${b.name}</div>`;
+    return div;
+  }
+
+  function makeEmpty(){
+    const div=document.createElement('div');
+    div.className='gov-slot empty';
+    div.innerHTML='<div class="sic" style="opacity:.3;font-size:1.1rem;">◻</div>';
+    return div;
+  }
+
+  // Fill 3 slots per side
+  for(let i=0;i<3;i++){
+    leftEl.appendChild(slotBadges[i]?makeSlot(slotBadges[i]):makeEmpty());
+  }
+  for(let i=3;i<6;i++){
+    rightEl.appendChild(slotBadges[i]?makeSlot(slotBadges[i]):makeEmpty());
+  }
+
+  // Extra badges in grid below
+  if(extraBadges.length&&extraGrid){
+    extraBadges.forEach(b=>{
+      const earned=earnedIds.includes(b.id);
+      extraGrid.innerHTML+=`<div class="badge ${earned?'':'locked'} ${b.is_manual?'manual':''}"><div class="ic">${b.icon}</div><div class="bn">${b.name}</div><div class="bt">${earned?'✓':'—'}</div></div>`;
+    });
+    if(extraWrap) extraWrap.style.display='';
+  }
+}
 
 async function signOut(){await sb.auth.signOut();currentUser=null;currentProfile=null;playerBadges=[];show('empty');applyLang();}
 $('#signOutEdit').onclick=signOut;$('#signOutView').onclick=signOut;

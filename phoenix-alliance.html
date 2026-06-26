@@ -115,33 +115,55 @@ async function maybeLoadFromSupabase(){
   if(error||!data) return; // fallback to CONFIG if not found
   const cfg=data.config||{};
   const isPXR=(data.tag==='PXR');
-  // For PXR, keep the rich hardcoded defaults. For any other alliance,
-  // show ONLY what's been saved — blank until the leader personalizes it.
-  const def=(savedVal,pxrDefault,blank)=> savedVal!=null&&savedVal!=='' ? savedVal : (isPXR?pxrDefault:blank);
-
   CONFIG.tag=data.tag;
   CONFIG.name=data.name;
   CONFIG.state=data.state_id;
-  CONFIG.motto=def(data.motto,CONFIG.motto,'');
-  CONFIG.power=data.power||CONFIG.power;
-  CONFIG.stateRank=data.state_rank||CONFIG.stateRank;
-  CONFIG.members=data.members||CONFIG.members;
-  CONFIG.accent=data.accent||CONFIG.accent;
-  CONFIG.accentDark=cfg.accentDark||CONFIG.accentDark;
-  CONFIG.accentShadow=cfg.accentShadow||CONFIG.accentShadow;
-  CONFIG.about=def(cfg.about,CONFIG.about,'');
-  CONFIG.values=cfg.values||(isPXR?CONFIG.values:[]);
-  CONFIG.quote=cfg.quote||(isPXR?CONFIG.quote:{show:false,text:'',by:''});
-  CONFIG.leaders=cfg.leaders||(isPXR?CONFIG.leaders:[]);
-  CONFIG.events=cfg.events||(isPXR?CONFIG.events:[]);
-  CONFIG.rules=cfg.rules||(isPXR?CONFIG.rules:[]);
-  CONFIG.news=cfg.news||(isPXR?CONFIG.news:[]);
-  CONFIG.theme=cfg.theme||'light';
-  CONFIG.logoUrl=cfg.logoUrl||'';
-  CONFIG.memberZone=cfg.memberZone||null;
-  CONFIG.gallery=Array.isArray(cfg.gallery)?cfg.gallery:[];
-  CONFIG.rankNames=cfg.rankNames||null;
   CONFIG._allianceId=data.id;
+
+  if(isPXR){
+    // PXR: saved values take priority, rich hardcoded defaults as fallback
+    CONFIG.motto        = data.motto        ?? CONFIG.motto;
+    CONFIG.power        = data.power        ?? CONFIG.power;
+    CONFIG.stateRank    = data.state_rank   ? '#'+data.state_rank : CONFIG.stateRank;
+    CONFIG.members      = data.members      ?? CONFIG.members;
+    CONFIG.accent       = data.accent       || CONFIG.accent;
+    CONFIG.accentDark   = cfg.accentDark    || CONFIG.accentDark;
+    CONFIG.accentShadow = cfg.accentShadow  || CONFIG.accentShadow;
+    CONFIG.about        = cfg.about         ?? CONFIG.about;
+    CONFIG.values       = cfg.values        ?? CONFIG.values;
+    CONFIG.quote        = cfg.quote         ?? CONFIG.quote;
+    CONFIG.leaders      = cfg.leaders       ?? CONFIG.leaders;
+    CONFIG.events       = cfg.events        ?? CONFIG.events;
+    CONFIG.rules        = cfg.rules         ?? CONFIG.rules;
+    CONFIG.news         = cfg.news          ?? CONFIG.news;
+    CONFIG.theme        = cfg.theme         || CONFIG.theme;
+    CONFIG.logoUrl      = cfg.logoUrl       || CONFIG.logoUrl;
+    CONFIG.joinText     = cfg.joinText      || CONFIG.joinText;
+    CONFIG.resell       = cfg.resell        ?? CONFIG.resell;
+  } else {
+    // Non-PXR: strictly blank — show only what was explicitly saved by the leader
+    CONFIG.motto        = data.motto        || '';
+    CONFIG.power        = data.power        || '—';
+    CONFIG.stateRank    = data.state_rank   ? '#'+data.state_rank : '—';
+    CONFIG.members      = data.members      || '—';
+    CONFIG.accent       = data.accent       || '#4a90d9';
+    CONFIG.accentDark   = cfg.accentDark    || '#2d6fa3';
+    CONFIG.accentShadow = cfg.accentShadow  || '#1a4a72';
+    CONFIG.about        = cfg.about         || '';
+    CONFIG.values       = Array.isArray(cfg.values)  ? cfg.values  : [];
+    CONFIG.quote        = cfg.quote         || {show:false,text:'',by:''};
+    CONFIG.leaders      = Array.isArray(cfg.leaders) ? cfg.leaders : [];
+    CONFIG.events       = Array.isArray(cfg.events)  ? cfg.events  : [];
+    CONFIG.rules        = Array.isArray(cfg.rules)   ? cfg.rules   : [];
+    CONFIG.news         = Array.isArray(cfg.news)    ? cfg.news    : [];
+    CONFIG.theme        = cfg.theme         || 'light';
+    CONFIG.logoUrl      = cfg.logoUrl       || '';
+    CONFIG.joinText     = cfg.joinText      || '';
+    CONFIG.resell       = cfg.resell        || {show:false,text:'',link:''};
+  }
+  CONFIG.memberZone = cfg.memberZone || null;
+  CONFIG.gallery    = Array.isArray(cfg.gallery) ? cfg.gallery : [];
+  CONFIG.rankNames  = cfg.rankNames  || null;
   // PXR premium background
   if(data.tag==='PXR')document.body.classList.add('pxr-premium');
   // update page title
@@ -239,14 +261,32 @@ function renderMemberZone(mz){
   /* fire-ice display font for dark headers */
   body.dark .aname,body.dark .brand b{font-family:'Cinzel','Baloo 2',serif; letter-spacing:.02em;}
 
-  /* ── SNOW THEME (white/icy clean) ─────────────────────────── */
+  /* ── SNOW THEME (blizzard/icy) ─────────────────────────────── */
   body.snow{
-    --sky:#f0f8ff; --sky2:#dcefff; --ice:#c5e4f5; --ice-deep:#6aa8d8;
-    --panel:#ffffff; --panel-edge:#d8ecf8; --ink:#2a4a66; --ink-soft:#5a7a96; --muted:#9ab8d0;
-    background:radial-gradient(ellipse at 50% -5%,#ffffff,transparent 55%),linear-gradient(180deg,#f0f8ff,#dcefff 40%,#c5e4f5);
+    --sky:#dff0fa; --sky2:#c8e8f8; --ice:#a0d4f0; --ice-deep:#4a9fd4;
+    --panel:#f0f8ff; --panel-edge:#c0dff0; --ink:#1e3a52; --ink-soft:#4a6a86; --muted:#80a8c0;
+    background:
+      radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.9),transparent 40%),
+      radial-gradient(ellipse at 80% 90%,rgba(180,225,250,.6),transparent 50%),
+      linear-gradient(180deg,#dff0fa,#c8e8f8 50%,#a0cee8);
   }
-  body.snow .ahero{background:radial-gradient(ellipse at 50% 0%, rgba(160,210,240,.4), transparent 60%);}
-  body.snow .aname{color:#2a4a66; text-shadow:0 2px 12px rgba(160,210,240,.5);}
+  body.snow::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle 1px at 10% 20%,rgba(200,235,255,.9) 1px,transparent 0),
+      radial-gradient(circle 1.5px at 35% 8%,rgba(180,220,250,.8) 1.5px,transparent 0),
+      radial-gradient(circle 1px at 60% 30%,rgba(200,235,255,.7) 1px,transparent 0),
+      radial-gradient(circle 2px at 85% 15%,rgba(180,220,250,.9) 2px,transparent 0),
+      radial-gradient(circle 1px at 50% 55%,rgba(200,235,255,.6) 1px,transparent 0),
+      radial-gradient(circle 1.5px at 75% 65%,rgba(180,220,250,.7) 1.5px,transparent 0);
+    background-size:100% 100%;
+    animation:blizzardDrift 8s linear infinite;
+  }
+  @keyframes blizzardDrift{0%{transform:translate(0,0);}100%{transform:translate(20px,30px);}}
+  body.snow .shell{position:relative;z-index:1;}
+  body.snow h1,body.snow h2,body.snow h3{font-family:'Nunito',sans-serif;font-weight:900;}
+  body.snow .aname{font-family:'Nunito',sans-serif;font-weight:900;color:#1e3a52;text-shadow:0 2px 16px rgba(160,220,255,.8);}
+  body.snow .tab.active{background:linear-gradient(180deg,#4a9fd4,#2a7ab8);border-color:#5ab0e4;}
+  body.snow .ahero{background:radial-gradient(ellipse at 50% 0%,rgba(200,235,255,.7),transparent 60%),linear-gradient(180deg,rgba(255,255,255,.5),rgba(180,225,250,.3));}
 
   /* ── RAINBOW THEME (vibrant gradient) ─────────────────────── */
   body.rainbow{
@@ -264,8 +304,16 @@ function renderMemberZone(mz){
     --sky:#0d0d12; --sky2:#141419; --ice:#2a2a33; --ice-deep:#8a8a9a;
     --panel:#16161d; --panel-edge:#33333f; --ink:#e8e8ee; --ink-soft:#a8a8b8; --muted:#6a6a78;
     --acc:#c0392b; --acc-d:#922b21; --acc-sh:#641e15; --white:#16161d;
-    background:radial-gradient(ellipse at 50% -5%, rgba(192,57,43,.18), transparent 55%),linear-gradient(180deg,#0d0d12,#141419 50%,#08080c);
+    background:radial-gradient(ellipse at 50% -5%, rgba(192,57,43,.22), transparent 55%),linear-gradient(180deg,#0d0d12,#141419 50%,#08080c);
   }
+  body.skull::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle at 15% 25%,rgba(192,57,43,.06),transparent 25%),
+      radial-gradient(circle at 85% 75%,rgba(100,30,21,.08),transparent 30%),
+      repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(192,57,43,.02) 40px,rgba(192,57,43,.02) 41px),
+      repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(192,57,43,.02) 40px,rgba(192,57,43,.02) 41px);
+  }
+  body.skull .shell{position:relative;z-index:1;}
   body.skull h1,body.skull h2,body.skull h3,body.skull h4{color:var(--ink);}
   body.skull .card{background:linear-gradient(180deg,#16161d,#101015); border:1px solid #33333f; outline:none;}
   body.skull .aname{color:#fff; text-shadow:0 0 20px rgba(192,57,43,.5); font-family:'Cinzel',serif;}
@@ -286,26 +334,131 @@ function renderMemberZone(mz){
   body.neutral .ahero{background:radial-gradient(ellipse at 50% 0%, var(--acc-glow), transparent 60%);}
   body.neutral .aname{color:#3a3a38;}
 
+  /* ── FIRE THEME (pure flames) ──────────────────────────────── */
+  body.fire{
+    --sky:#120500; --sky2:#1c0800; --ice:#2d1000; --ice-deep:#ff6a00;
+    --panel:#1e0a00; --panel-edge:#4d1f00; --panel-blue:#8b3a00; --panel-blue-d:#6a2800;
+    --ink:#ffe0c0; --ink-soft:#d08050; --muted:#8a5030;
+    --white:#1e0a00;
+    --acc:#ff6a00; --acc-d:#e04a00; --acc-sh:#b03000;
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(255,120,0,.35), transparent 60%),
+      radial-gradient(ellipse at 30% 80%, rgba(255,50,0,.2), transparent 40%),
+      radial-gradient(ellipse at 70% 70%, rgba(255,160,0,.15), transparent 35%),
+      linear-gradient(180deg,#120500,#1c0800 40%,#0a0200);
+    color:var(--ink);
+  }
+  body.fire::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(ellipse at 20% 90%,rgba(255,80,0,.12),transparent 30%),
+      radial-gradient(ellipse at 80% 85%,rgba(255,140,0,.1),transparent 35%),
+      repeating-linear-gradient(180deg,transparent,transparent 3px,rgba(255,80,0,.015) 3px,rgba(255,80,0,.015) 4px);}
+  body.fire .shell{position:relative;z-index:1;}
+  body.fire h1,body.fire h2,body.fire h3,body.fire h4{color:var(--ink);font-family:'Cinzel','Baloo 2',serif;}
+  body.fire .top{background:linear-gradient(180deg,rgba(18,5,0,.95),rgba(10,2,0,.9));border-bottom:2px solid #4d1f00;box-shadow:0 2px 20px rgba(255,80,0,.2);}
+  body.fire .card{background:linear-gradient(180deg,rgba(30,10,0,.9),rgba(18,5,0,.85));border:1px solid #4d1f00;box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,100,0,.08);}
+  body.fire .atag{background:linear-gradient(180deg,#4d1f00,#300f00);border:2px solid #ff6a00;color:#ffb060;box-shadow:0 0 16px rgba(255,106,0,.4);}
+  body.fire .aname{color:#ffd090;font-family:'Cinzel',serif;text-shadow:0 0 24px rgba(255,160,0,.6),0 0 48px rgba(255,80,0,.3);}
+  body.fire .astat{background:linear-gradient(180deg,#1e0a00,#120500);border:2px solid #4d1f00;box-shadow:0 3px 0 #050200;}
+  body.fire .astat .n{color:#ff8a30;text-shadow:0 0 12px rgba(255,120,0,.5);}
+  body.fire .tab{background:linear-gradient(180deg,#2d1000,#1c0800);border:2px solid #4d1f00;color:#d08050;box-shadow:0 3px 0 #050200;}
+  body.fire .tab.active{background:linear-gradient(180deg,#ff6a00,#c03000);color:#fff;border-color:#ff9040;box-shadow:0 3px 0 #5a1000,0 0 18px rgba(255,106,0,.5);}
+  body.fire .botnav{background:linear-gradient(180deg,#1c0800,#0a0200);border-top:2px solid #4d1f00;}
+  body.fire .botnav a{color:rgba(255,160,80,.5);}
+  body.fire .botnav a.active{background:linear-gradient(180deg,#ff6a00,#c03000);border-color:#ff9040;color:#fff;}
+  body.fire .rrow{background:#120500;border-color:#4d1f00;}
+  body.fire .rrow .av{background:linear-gradient(135deg,#4d1f00,#8b3a00);color:#ffd090;}
+  body.fire .ev,body.fire .ann{background:#120500;border-color:#4d1f00;}
+  body.fire .ahero{background:radial-gradient(ellipse at 50% 100%,rgba(255,120,0,.45),transparent 60%),radial-gradient(ellipse at 50% 0%,rgba(255,60,0,.2),transparent 50%),linear-gradient(180deg,#1c0800,#0a0200);}
+  body.fire .ahero .theme-canvas::before{
+    content:'🔥';position:absolute;bottom:2px;left:8px;font-size:2.8rem;
+    animation:flameDance 1s ease-in-out infinite alternate;filter:drop-shadow(0 0 16px rgba(255,100,0,1));
+  }
+  body.fire .ahero .theme-canvas::after{
+    content:'🔥';position:absolute;bottom:2px;right:8px;font-size:2.2rem;
+    animation:flameDance 1.3s ease-in-out infinite alternate-reverse;filter:drop-shadow(0 0 14px rgba(255,60,0,1));
+  }
+
   /* ── THEME-SPECIFIC FONTS & DECORATIONS ───────────────────── */
-  /* Rainbow: playful rounded display font + sparkle */
+  .ahero{position:relative;overflow:hidden;}
+  .ahero .theme-canvas{position:absolute;inset:0;pointer-events:none;z-index:0;}
+  .ahero>*:not(.theme-canvas){position:relative;z-index:1;}
+
+  /* === RAINBOW + UNICORNS === */
   body.rainbow .aname{font-family:'Pacifico',cursive;}
   body.rainbow h1,body.rainbow h2,body.rainbow h3{font-family:'Nunito',sans-serif;font-weight:800;}
-  body.rainbow .ahero::after{content:'🌈';position:absolute;top:12px;right:16px;font-size:1.6rem;opacity:.8;}
-  body.rainbow .ahero::before{content:'✨';position:absolute;top:14px;left:16px;font-size:1.3rem;opacity:.7;}
-  /* Snow: clean airy font + snowflakes */
+  body.rainbow .ahero .theme-canvas::before{
+    content:'🦄';position:absolute;top:6px;right:8px;font-size:2.4rem;opacity:.9;filter:drop-shadow(0 0 8px rgba(255,100,200,.5));
+    animation:unicornFloat 4s ease-in-out infinite;
+  }
+  body.rainbow .ahero .theme-canvas::after{
+    content:'✨🌈✨';position:absolute;bottom:6px;left:8px;font-size:.9rem;letter-spacing:2px;opacity:.8;
+  }
+  @keyframes unicornFloat{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-6px) rotate(3deg);}}
+  body.rainbow .ahero{
+    background:linear-gradient(135deg,rgba(255,150,200,.4),rgba(150,200,255,.3),rgba(200,255,180,.35));
+  }
+
+  /* === SNOW + BLIZZARD + SNOWFLAKES === */
   body.snow h1,body.snow h2,body.snow h3,body.snow .aname{font-family:'Nunito',sans-serif;font-weight:800;}
-  body.snow .ahero::after{content:'❄️';position:absolute;top:12px;right:16px;font-size:1.4rem;opacity:.7;}
-  body.snow .ahero::before{content:'❄️';position:absolute;bottom:12px;left:16px;font-size:1rem;opacity:.5;}
-  /* Skull: gothic horror display font + skull */
-  body.skull .aname{font-family:'Creepster',cursive;letter-spacing:.04em;font-weight:400;}
+  body.snow .ahero{background:radial-gradient(ellipse at 50% -20%,rgba(255,255,255,.9),rgba(200,235,255,.7));}
+  @keyframes snowfall{
+    0%{transform:translateY(-20px) translateX(0) rotate(0deg);opacity:0;}
+    10%{opacity:.9;}
+    90%{opacity:.7;}
+    100%{transform:translateY(120px) translateX(20px) rotate(360deg);opacity:0;}
+  }
+  @keyframes snowfall2{
+    0%{transform:translateY(-20px) translateX(0) rotate(0deg);opacity:0;}
+    10%{opacity:.7;}
+    90%{opacity:.5;}
+    100%{transform:translateY(120px) translateX(-15px) rotate(-270deg);opacity:0;}
+  }
+  body.snow .ahero .theme-canvas{overflow:hidden;}
+  body.snow .ahero .theme-canvas::before{
+    content:'❄';position:absolute;top:-10px;left:15%;font-size:1.4rem;color:rgba(150,210,250,.9);
+    animation:snowfall 3.5s ease-in infinite;
+  }
+  body.snow .ahero .theme-canvas::after{
+    content:'❄ ❅ ❆ ❄ ❅';position:absolute;top:-10px;right:10%;font-size:.9rem;color:rgba(150,210,250,.8);letter-spacing:8px;
+    animation:snowfall2 4.2s ease-in infinite 1.5s;
+  }
+
+  /* === SKULL + GOTHIC BONES === */
+  body.skull .aname{font-family:'Cinzel',serif;letter-spacing:.06em;font-weight:700;}
   body.skull h1,body.skull h2,body.skull h3{font-family:'Cinzel',serif;}
-  body.skull .ahero::after{content:'💀';position:absolute;top:12px;right:16px;font-size:1.5rem;opacity:.8;}
-  body.skull .ahero::before{content:'🔥';position:absolute;top:14px;left:16px;font-size:1.3rem;opacity:.7;}
-  /* Dark fire&ice: ember decorations */
-  body.dark .ahero::after{content:'🔥';position:absolute;top:12px;right:16px;font-size:1.4rem;opacity:.7;}
-  body.dark .ahero::before{content:'❄️';position:absolute;top:14px;left:16px;font-size:1.2rem;opacity:.6;}
-  /* make hero positioned for the decorations */
-  .ahero{position:relative;}
+  @keyframes skullPulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:.8;transform:scale(1.08);}}
+  body.skull .ahero .theme-canvas::before{
+    content:'💀';position:absolute;top:8px;right:14px;font-size:2.2rem;
+    animation:skullPulse 2.5s ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(192,57,43,.7));
+  }
+  body.skull .ahero .theme-canvas::after{
+    content:'🦴  ☠️  🦴';position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:1.1rem;opacity:.5;letter-spacing:12px;
+  }
+  body.skull .ahero{background:radial-gradient(ellipse at 50% 0%,rgba(192,57,43,.25),transparent 65%),linear-gradient(180deg,#1a1015,#0d0810);}
+
+  /* === FIRE / FLAMES THEME === */
+  /* NOTE: body.dark IS the fire-ice theme — we use .dark for fire decoration */
+  body.dark .ahero .theme-canvas::before{
+    content:'🔥';position:absolute;bottom:4px;left:12px;font-size:2rem;
+    animation:flameDance 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 0 12px rgba(255,120,0,.8));
+  }
+  body.dark .ahero .theme-canvas::after{
+    content:'🔥';position:absolute;bottom:4px;right:12px;font-size:1.6rem;
+    animation:flameDance 1.5s ease-in-out infinite alternate-reverse;filter:drop-shadow(0 0 10px rgba(255,90,0,.7));
+  }
+  @keyframes flameDance{0%{transform:scaleX(1) translateY(0);}100%{transform:scaleX(.88) translateY(-4px);}}
+
+  /* === BATTLE === */
+  body.battle .ahero .theme-canvas::before{
+    content:'⚔️';position:absolute;top:10px;right:14px;font-size:2rem;opacity:.7;
+    animation:battleShake .8s ease-in-out infinite alternate;
+  }
+  body.battle .ahero .theme-canvas::after{
+    content:'🔥';position:absolute;bottom:4px;left:12px;font-size:1.6rem;opacity:.6;
+    animation:flameDance 1.3s ease-in-out infinite alternate;
+  }
+  @keyframes battleShake{0%{transform:rotate(-5deg);}100%{transform:rotate(5deg);}}
 
   /* ── PXR PREMIUM BACKGROUND ────────────────────────────────── */
   body.pxr-premium{
@@ -556,6 +709,7 @@ body{padding-bottom:72px !important;}
 
 <div class="shell">
   <div class="ahero">
+    <div class="theme-canvas" id="themeCanvas" aria-hidden="true"></div>
     <div class="acrest" id="acrest"></div>
     <div class="atag" id="atag"></div>
     <div class="aname" id="aname"></div>
@@ -698,7 +852,7 @@ function applyConfig(){
   const c=CONFIG;
   // Apply theme (dark fire&ice or light)
   // Apply theme — remove all theme classes, then add the selected one
-  document.body.classList.remove('dark','snow','rainbow','skull','neutral','wosblue','battle');
+  document.body.classList.remove('dark','snow','rainbow','skull','neutral','wosblue','battle','fire');
   const themeClass=c.theme&&c.theme!=='light'?c.theme:'';
   if(themeClass)document.body.classList.add(themeClass);
   setVar('--acc',c.accent); setVar('--acc-d',c.accentDark); setVar('--acc-sh',c.accentShadow);
@@ -874,7 +1028,7 @@ async function loadMembers(){
 </script>
 
 <nav class="botnav">
-  <a href="phoenix-state.html"><span class="ic">🗺️</span>3139</a>
+  <a href="./phoenix-state.html"><span class="ic">🗺️</span>3139</a>
   <a href="phoenix-alliance.html" class="active" id="navActiveAlliance"><span class="nav-ic" id="navActiveIc">🏰</span><span id="navActiveTag">Alliance</span></a>
   <a href="phoenix-profile.html"><span class="ic">🚪</span>Entrar</a>
 </nav>
