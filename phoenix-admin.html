@@ -147,7 +147,7 @@ body{padding-bottom:72px !important;}
     <div class="denied-icon">🔒</div>
     <h2 style="margin-bottom:8px;">Access restricted</h2>
     <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:24px;">This panel is for verified R4/R5 officers only. If you should have access, contact Hestelae or TMQ.</p>
-    <a href="phoenix-state.html" class="btn btn-ghost" style="text-decoration:none;display:inline-flex;width:auto;">← Back to State 3139</a>
+    <a href="./phoenix-state.html" class="btn btn-ghost" style="text-decoration:none;display:inline-flex;width:auto;">← Back to State 3139</a>
   </div>
 
   <!-- NOT LOGGED IN -->
@@ -411,12 +411,24 @@ body{padding-bottom:72px !important;}
       </div>
     </div>
 
+    <!-- CONFIG TEMPLATE (export / import) -->
+    <div style="margin-top:20px;padding:16px;background:linear-gradient(180deg,#fff7e6,#fff0d8);border:2px solid #ffd9a0;border-radius:14px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:1rem;color:#c2470f;margin-bottom:4px;">📋 Config template</div>
+      <div style="font-size:.78rem;color:#7a5a3a;line-height:1.4;margin-bottom:12px;">Export this alliance's settings to an Excel file that leaders can fill in. Import it back to load everything at once. Then press <b>Save changes</b>.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="exportCfgBtn" style="flex:1;min-width:140px;">⬇️ Export template</button>
+        <button class="btn btn-ghost" id="importCfgBtn" style="flex:1;min-width:140px;">⬆️ Import template</button>
+        <input type="file" id="importCfgFile" accept=".xlsx,.xls" style="display:none;">
+      </div>
+      <div class="errmsg" id="cfgImportMsg" style="margin-top:8px;"></div>
+    </div>
+
     <!-- SAVE BAR -->
     <div style="margin-top:20px;" id="mainSaveBar">
       <div class="errmsg" id="saveErr"></div>
       <button class="btn btn-fire" id="saveBtn">💾 Save changes</button>
       <div style="text-align:center;margin-top:10px;">
-        <a id="previewLink" href="phoenix-alliance.html" target="_blank"
+        <a id="previewLink" href="./phoenix-alliance.html" target="_blank"
            style="font-family:'Fredoka';font-weight:600;font-size:.8rem;color:var(--ice-deep);text-decoration:none;">
           👁️ Preview alliance page →
         </a>
@@ -430,10 +442,10 @@ body{padding-bottom:72px !important;}
 <div class="toast" id="toast"></div>
 
 <nav class="botnav">
-  <a href="phoenix-state.html"><span class="ic">🗺️</span>3139</a>
-  <a href="phoenix-alliance.html">PXR</a>
-  <a href="phoenix-profile.html"><span class="ic">👤</span>Profile</a>
-  <a href="phoenix-admin.html" class="active"><span class="ic">🔐</span>Admin</a>
+  <a href="./phoenix-state.html"><span class="ic">🗺️</span>3139</a>
+  <a href="./phoenix-alliance.html">PXR</a>
+  <a href="./phoenix-profile.html"><span class="ic">👤</span>Profile</a>
+  <a href="./phoenix-admin.html" class="active"><span class="ic">🔐</span>Admin</a>
 </nav>
 
 <script>
@@ -1111,6 +1123,186 @@ $('#importFile').addEventListener('change',async(e)=>{
     loadMembersEditor();
   }catch(err){console.error('Import failed:',err);showErr('#importErr','Import failed: '+err.message);}
   e.target.value=''; // reset so same file can be re-imported
+});
+
+// ── CONFIG TEMPLATE EXPORT / IMPORT ───────────────────────────
+function aoaSheet(rows){ return XLSX.utils.aoa_to_sheet(rows); }
+
+$('#exportCfgBtn').onclick=()=>{
+  if(!editingAlliance){showErr('#cfgImportMsg','Load an alliance first.');return;}
+  const tag=$('#fTag').value.trim()||editingAlliance.tag||'ALLIANCE';
+  const wb=XLSX.utils.book_new();
+
+  // READ ME
+  XLSX.utils.book_append_sheet(wb, aoaSheet([
+    ['PHOENIX · ALLIANCE CONFIG TEMPLATE'],
+    [''],
+    ['HOW TO USE'],
+    ['1. Fill in the Value column / rows in each tab.'],
+    ['2. Fill only the sections you want — leave others as they are.'],
+    ['3. Add more rows for more leaders / events / rules / news.'],
+    ['4. Delete a whole row to remove an item.'],
+    ['5. In the Admin panel: Import template → choose this file → Save changes.'],
+    [''],
+    ['Theme options: light, dark, snow, rainbow, skull, fire, neutral, wosblue, battle'],
+    ['Do not rename tabs or change the header rows.']
+  ]), 'READ ME');
+
+  // 1. Identity
+  XLSX.utils.book_append_sheet(wb, aoaSheet([
+    ['Field','Value'],
+    ['Tag', $('#fTag').value.trim()],
+    ['Alliance name', $('#fName').value.trim()],
+    ['Motto', $('#fMotto').value.trim()],
+    ['Power', $('#fPower').value.trim()],
+    ['State rank', $('#fRank').value.trim()],
+    ['Members', $('#fMembers').value.trim()],
+    ['About', $('#fAbout').value.trim()],
+    ['Quote text', $('#fQuote').value.trim()],
+    ['Quote author', $('#fQuoteBy').value.trim()]
+  ]), '1. Identity');
+
+  // 2. Style
+  XLSX.utils.book_append_sheet(wb, aoaSheet([
+    ['Field','Value'],
+    ['Theme', selectedTheme||'light'],
+    ['Accent color', $('#fAccent').value],
+    ['Logo URL', $('#fLogoUrl').value.trim()]
+  ]), '2. Style');
+
+  // 3. Leaders
+  const ldrRows=[['Name','Rank','Role']];
+  readLeaders().forEach(l=>ldrRows.push([l.name||'',l.rank||'',l.role||'']));
+  XLSX.utils.book_append_sheet(wb, aoaSheet(ldrRows), '3. Leaders');
+
+  // 4. Events
+  const evRows=[['Icon','Event name','Frequency','Time 1','Time 2','Note']];
+  readEvents().forEach(e=>evRows.push([e.icon||'',e.name||'',e.freq||'',e.t1||'',e.t2||'',e.note||'']));
+  XLSX.utils.book_append_sheet(wb, aoaSheet(evRows), '4. Events');
+
+  // 5. Rules
+  const ruRows=[['Title','Text']];
+  readRules().forEach(r=>ruRows.push([r.title||'',r.text||'']));
+  XLSX.utils.book_append_sheet(wb, aoaSheet(ruRows), '5. Rules');
+
+  // 6. News
+  const nwRows=[['Date label','Text']];
+  readNews().forEach(n=>nwRows.push([n.date||'',n.msg||'']));
+  XLSX.utils.book_append_sheet(wb, aoaSheet(nwRows), '6. News');
+
+  XLSX.writeFile(wb, `${tag}-config-template.xlsx`);
+};
+
+$('#importCfgBtn').onclick=()=>{
+  if(!editingAlliance){showErr('#cfgImportMsg','Load an alliance first.');return;}
+  $('#importCfgFile').click();
+};
+
+$('#importCfgFile').addEventListener('change', async(e)=>{
+  const file=e.target.files[0];
+  if(!file){return;}
+  hideErr('#cfgImportMsg');
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const getSheet=(namePart)=>{
+      const nm=wb.SheetNames.find(s=>s.toLowerCase().includes(namePart));
+      return nm?XLSX.utils.sheet_to_json(wb.Sheets[nm],{header:1,defval:''}):null;
+    };
+    // helper: read key/value sheets (Field|Value)
+    const kv=(rows)=>{
+      const map={};
+      if(!rows)return map;
+      rows.slice(1).forEach(r=>{ const k=String(r[0]||'').trim().toLowerCase(); if(k) map[k]=String(r[1]||'').trim(); });
+      return map;
+    };
+
+    let applied=[];
+
+    // 1. Identity
+    const id=kv(getSheet('identity'));
+    if(Object.keys(id).length){
+      if('tag' in id && id.tag) $('#fTag').value=id.tag;
+      if('alliance name' in id && id['alliance name']) $('#fName').value=id['alliance name'];
+      if('motto' in id) $('#fMotto').value=id.motto;
+      if('power' in id) $('#fPower').value=id.power;
+      if('state rank' in id) $('#fRank').value=id['state rank'];
+      if('members' in id) $('#fMembers').value=id.members;
+      if('about' in id) $('#fAbout').value=id.about;
+      if('quote text' in id) $('#fQuote').value=id['quote text'];
+      if('quote author' in id && id['quote author']) $('#fQuoteBy').value=id['quote author'];
+      applied.push('Identity');
+    }
+
+    // 2. Style
+    const st=kv(getSheet('style'));
+    if(Object.keys(st).length){
+      if('theme' in st && st.theme){ setThemeUI(st.theme.toLowerCase()); }
+      if('accent color' in st && st['accent color']){ $('#fAccent').value=st['accent color']; updateSwatches(); }
+      if('logo url' in st){ $('#fLogoUrl').value=st['logo url']; $('#fLogoUrl').dispatchEvent(new Event('input')); }
+      applied.push('Style');
+    }
+
+    // 3. Leaders
+    const ldr=getSheet('leaders');
+    if(ldr && ldr.length>1){
+      const list=$('#leaderList'); list.innerHTML='';
+      ldr.slice(1).filter(r=>String(r[0]||'').trim()).forEach((r,i)=>{
+        const d=document.createElement('div');
+        d.innerHTML=leaderHTML(i,{name:String(r[0]||'').trim(),rank:String(r[1]||'R4').trim(),role:String(r[2]||'').trim()});
+        list.appendChild(d.firstElementChild);
+      });
+      applied.push('Leaders');
+    }
+
+    // 4. Events
+    const ev=getSheet('events');
+    if(ev && ev.length>1){
+      const list=$('#eventList'); list.innerHTML='';
+      ev.slice(1).filter(r=>String(r[1]||'').trim()).forEach((r,i)=>{
+        const d=document.createElement('div');
+        d.innerHTML=eventHTML(i,{icon:String(r[0]||'').trim(),name:String(r[1]||'').trim(),freq:String(r[2]||'').trim(),t1:String(r[3]||'').trim(),t2:String(r[4]||'').trim(),note:String(r[5]||'').trim()});
+        list.appendChild(d.firstElementChild);
+      });
+      applied.push('Events');
+    }
+
+    // 5. Rules
+    const ru=getSheet('rules');
+    if(ru && ru.length>1){
+      const list=$('#ruleList'); list.innerHTML='';
+      ru.slice(1).filter(r=>String(r[0]||'').trim()).forEach((r,i)=>{
+        const d=document.createElement('div');
+        d.innerHTML=ruleHTML(i,{title:String(r[0]||'').trim(),text:String(r[1]||'').trim()});
+        list.appendChild(d.firstElementChild);
+      });
+      applied.push('Rules');
+    }
+
+    // 6. News
+    const nw=getSheet('news');
+    if(nw && nw.length>1){
+      const list=$('#newsList'); list.innerHTML='';
+      nw.slice(1).filter(r=>String(r[1]||'').trim()||String(r[0]||'').trim()).forEach((r,i)=>{
+        const d=document.createElement('div');
+        d.innerHTML=newsHTML(i,{date:String(r[0]||'').trim(),msg:String(r[1]||'').trim()});
+        list.appendChild(d.firstElementChild);
+      });
+      applied.push('News');
+    }
+
+    if(applied.length){
+      const msg=$('#cfgImportMsg');
+      msg.style.color='#1a7a3a';
+      msg.textContent=`✓ Loaded: ${applied.join(', ')}. Review, then press Save changes.`;
+    }else{
+      showErr('#cfgImportMsg','No recognized sheets found. Use the exported template format.');
+    }
+  }catch(err){
+    console.error('Config import failed:',err);
+    showErr('#cfgImportMsg','Import failed: '+err.message);
+  }
+  e.target.value='';
 });
 
 // ── STATE RANKING EDITOR (admins only) ────────────────────────
