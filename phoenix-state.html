@@ -216,7 +216,7 @@
   .globe-card-power{display:flex;align-items:baseline;gap:6px;}
   .globe-card-power .pv{font-family:'Baloo 2';font-weight:800;font-size:1.5rem;color:#ffce4a;text-shadow:0 0 12px rgba(255,180,40,.4);}
   .globe-card-power .pl{font-size:.66rem;color:#7a9ac8;text-transform:uppercase;letter-spacing:.08em;font-family:'Fredoka';font-weight:600;}
-  .globe-card-honor{margin-top:10px;padding-top:10px;border-top:1px solid rgba(120,160,220,.25);}
+  .globe-card-honor{margin-top:8px;}
   .globe-card-honor-zh{font-family:'Noto Serif SC',serif;font-weight:700;font-size:.82rem;color:#ffd86a;margin-bottom:3px;}
   .globe-card-honor-tr{font-size:.72rem;color:#9ab8e0;font-style:italic;line-height:1.4;}
 
@@ -791,7 +791,6 @@ function renderGlobePlayers(){
           <div class="globe-card-name">${p.name}</div>
           <div class="globe-card-tag">[${p.tag}]</div>
           <div class="globe-card-id">ID ${p.id}</div>
-          <div class="globe-card-power"><span class="pv">${p.power}</span><span class="pl">Power</span></div>
           <div class="globe-card-honor">
             <div class="globe-card-honor-zh">${p.honorZh}</div>
             <div class="globe-card-honor-tr">${honorTr}</div>
@@ -822,7 +821,6 @@ function renderMeteorPlayers(){
     return `<div class="meteor-row${isPXR?' is-pxr':''}">
       ${av}
       <div class="m-info"><div class="m-name">${p.name}</div><div class="m-tag">[${p.tag}]</div></div>
-      <div class="m-power">${p.power}</div>
     </div>`;
   }).join('');
 }

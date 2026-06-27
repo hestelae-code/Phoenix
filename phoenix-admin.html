@@ -197,6 +197,7 @@ body{padding-bottom:72px !important;}
       <button class="etab" data-sec="gallery">📸 Gallery</button>
       <button class="etab" data-sec="memberzone">🔒 Members Zone</button>
       <button class="etab" data-sec="ranking" id="rankingTab" style="display:none">🏆 State Ranking</button>
+      <button class="etab" data-sec="access" id="accessTab" style="display:none">🔑 Access</button>
     </div>
 
     <!-- IDENTITY -->
@@ -411,6 +412,21 @@ body{padding-bottom:72px !important;}
       </div>
     </div>
 
+    <!-- ACCESS MANAGEMENT (admins only) -->
+    <div class="esec" id="sec-access">
+      <div class="card">
+        <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:6px;">Give leaders control of their alliance — no SQL needed.</p>
+        <p style="font-size:.76rem;color:var(--muted);margin-bottom:12px;">⚡ Only you and TMQ can assign roles. A leader must create their account (log in once) before they appear here.</p>
+        <div class="field">
+          <label>Search player by name or Governor ID</label>
+          <input id="accessSearch" placeholder="Type a name or ID…">
+        </div>
+        <div id="accessResults" class="dlist" style="margin-top:10px;"></div>
+        <div class="errmsg" id="accessErr" style="margin-top:10px;"></div>
+        <div id="accessMsg" style="margin-top:8px;font-size:.82rem;"></div>
+      </div>
+    </div>
+
     <!-- CONFIG TEMPLATE (export / import) -->
     <div style="margin-top:20px;padding:16px;background:linear-gradient(180deg,#fff7e6,#fff0d8);border:2px solid #ffd9a0;border-radius:14px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:1rem;color:#c2470f;margin-bottom:4px;">📋 Config template</div>
@@ -585,12 +601,13 @@ document.querySelectorAll('.etab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.etab').forEach(x=>x.classList.toggle('active',x===t));
   const sec=t.dataset.sec;
   document.querySelectorAll('.esec').forEach(s=>s.classList.toggle('active',s.id==='sec-'+sec));
-  // Members and Ranking have their own save buttons — hide the main one
+  // Members, Ranking and Access have their own controls — hide the main save button
   const mainBar=document.getElementById('mainSaveBar');
-  if(mainBar)mainBar.style.display=(sec==='members'||sec==='ranking')?'none':'';
+  if(mainBar)mainBar.style.display=(sec==='members'||sec==='ranking'||sec==='access')?'none':'';
   // Lazy-load data for these tabs
   if(sec==='members')loadMembersEditor();
   if(sec==='ranking')loadRankingEditor();
+  if(sec==='access')loadAccessAlliances();
 });
 
 // ── DYNAMIC LIST HELPERS ──────────────────────────────────────
@@ -1154,7 +1171,6 @@ $('#exportCfgBtn').onclick=()=>{
     ['Tag', $('#fTag').value.trim()],
     ['Alliance name', $('#fName').value.trim()],
     ['Motto', $('#fMotto').value.trim()],
-    ['Power', $('#fPower').value.trim()],
     ['State rank', $('#fRank').value.trim()],
     ['Members', $('#fMembers').value.trim()],
     ['About', $('#fAbout').value.trim()],
@@ -1243,7 +1259,6 @@ $('#importCfgFile').addEventListener('change', async(e)=>{
       if(id.tag) $('#fTag').value=id.tag;
       if(id['alliance name']) $('#fName').value=id['alliance name'];
       if('motto' in id) $('#fMotto').value=id.motto;
-      if('power' in id) $('#fPower').value=id.power;
       if('state rank' in id) $('#fRank').value=id['state rank'];
       if('members' in id) $('#fMembers').value=id.members;
       if('about' in id) $('#fAbout').value=id.about;
@@ -1380,6 +1395,119 @@ $('#saveRankBtn').onclick=async()=>{
   else{toast('Ranking saved ✓');loadRankingEditor();}
 };
 
+// ── ACCESS MANAGEMENT (assign roles without SQL) ──────────────
+// ┌──────────────────────────────────────────────────────────┐
+// │ To allow granting FULL ADMIN from the website (e.g. if you │
+// │ ever hand the platform to someone else), change this to    │
+// │ true. While false, full admin can ONLY be granted via SQL  │
+// │ in Supabase — the most secure setup.                       │
+// └──────────────────────────────────────────────────────────┘
+const ALLOW_ADMIN_GRANT = false;
+
+let accessAlliances=[]; // cache of alliances for the dropdown
+async function loadAccessAlliances(){
+  // Load all alliances in the current state so roles can be assigned per-alliance.
+  // Falls back to all alliances if state can't be determined.
+  const stateId = editingAlliance?.state_id || '3139';
+  const{data}=await sb.from('alliances').select('id,tag,name,state_id').eq('state_id',stateId).order('tag');
+  accessAlliances=data||[];
+}
+
+function accessRowHTML(p){
+  const roleNow = p.role || 'member';
+  const allianceNow = accessAlliances.find(a=>a.id===p.alliance_id);
+  const allianceLabel = allianceNow ? `[${allianceNow.tag}]` : '—';
+  const opts = accessAlliances.map(a=>`<option value="${a.id}" ${a.id===p.alliance_id?'selected':''}>[${a.tag}] ${a.name||''}</option>`).join('');
+  return `<div class="ditem" data-id="${p.id}">
+    <div class="ditem-header">
+      <span class="dtag">${p.name||'(no name)'} ${allianceLabel}</span>
+      <span style="font-size:.72rem;color:var(--muted);">ID ${p.governor_id||'—'}</span>
+    </div>
+    <div style="font-size:.76rem;color:var(--ink-soft);margin-bottom:8px;">Current role: <b>${roleNow}</b></div>
+    <div class="row2">
+      <select class="ac-role">
+        <option value="member" ${roleNow==='member'?'selected':''}>Member (no admin)</option>
+        <option value="r4" ${roleNow==='r4'?'selected':''}>R4 — manage own alliance</option>
+        <option value="r5" ${roleNow==='r5'?'selected':''}>R5 — manage own alliance</option>
+        ${ALLOW_ADMIN_GRANT ? `<option value="admin" ${roleNow==='admin'?'selected':''}>Admin — full control</option>` : (roleNow==='admin'?`<option value="admin" selected>Admin — full control</option>`:'')}
+      </select>
+      <select class="ac-alliance">${opts}</select>
+    </div>
+    <button type="button" class="btn btn-fire ac-save" style="margin-top:8px;width:100%;">💾 Apply</button>
+  </div>`;
+}
+
+let accessSearchTimer=null;
+$('#accessSearch').addEventListener('input', (e)=>{
+  clearTimeout(accessSearchTimer);
+  const q=e.target.value.trim();
+  const results=$('#accessResults');
+  $('#accessMsg').textContent='';
+  if(q.length<2){ results.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px;">Type at least 2 characters…</p>'; return; }
+  accessSearchTimer=setTimeout(async()=>{
+    hideErr('#accessErr');
+    results.innerHTML='<p style="color:var(--muted);font-size:.82rem;padding:8px;">Searching…</p>';
+    if(!accessAlliances.length) await loadAccessAlliances();
+    // Search by name (ilike) OR governor_id. Only registered accounts (owner not null) can hold roles.
+    const{data,error}=await sb.from('players')
+      .select('id,name,governor_id,role,alliance_id,owner')
+      .or(`name.ilike.%${q}%,governor_id.ilike.%${q}%`)
+      .limit(20);
+    if(error){showErr('#accessErr','Search failed: '+error.message);results.innerHTML='';return;}
+    const registered=(data||[]).filter(p=>p.owner); // must have an account
+    if(!registered.length){
+      results.innerHTML='<p style="color:var(--muted);font-size:.82rem;padding:8px;">No registered players match. They must create an account (log in once) first.</p>';
+      return;
+    }
+    results.innerHTML='';
+    registered.forEach(p=>{
+      const d=document.createElement('div');
+      d.innerHTML=accessRowHTML(p);
+      const node=d.firstElementChild;
+      node.querySelector('.ac-save').onclick=async()=>{
+        const role=node.querySelector('.ac-role').value;
+        const allianceId=node.querySelector('.ac-alliance').value;
+        const btn=node.querySelector('.ac-save');
+        // Full admin can only be granted from the web if explicitly enabled.
+        if(role==='admin' && !ALLOW_ADMIN_GRANT){
+          showErr('#accessErr','Full admin can only be granted via SQL in Supabase (most secure). To enable it here, set ALLOW_ADMIN_GRANT = true in the code.');
+          return;
+        }
+        // Extra confirmation for full admin — this grants control over EVERYTHING.
+        if(role==='admin'){
+          const ok=window.confirm(
+            `⚠️ FULL ADMIN ACCESS\n\nYou are about to give "${p.name||'this player'}" complete control over the entire platform — every alliance, every state, and the power to change other people's roles.\n\nThis should only ever be you and TMQ.\n\nAre you absolutely sure?`
+          );
+          if(!ok) return;
+          // Second, deliberate confirmation: type the player name
+          const typed=window.prompt(
+            `To confirm, type the player's name exactly:\n\n${p.name||''}`
+          );
+          if(typed===null) return;
+          if((typed||'').trim()!==(p.name||'').trim()){
+            showErr('#accessErr','Name did not match — admin access NOT granted.');
+            return;
+          }
+        }
+        btn.textContent='Saving…';btn.disabled=true;
+        // For admin role, alliance_id is optional (they manage all). For r4/r5, it's required.
+        const payload={role};
+        if(role==='r4'||role==='r5'){ payload.alliance_id=allianceId; }
+        const{error}=await sb.from('players').update(payload).eq('id',p.id);
+        btn.textContent='💾 Apply';btn.disabled=false;
+        if(error){showErr('#accessErr','Save failed: '+error.message);}
+        else{
+          const msg=$('#accessMsg');msg.style.color='#1a7a3a';
+          const al=accessAlliances.find(a=>a.id===allianceId);
+          msg.textContent=`✓ ${p.name||'Player'} is now ${role}${(role==='r4'||role==='r5')&&al?' of ['+al.tag+']':''}.`;
+          toast('Access updated ✓');
+        }
+      };
+      results.appendChild(node);
+    });
+  }, 350);
+});
+
 // ── INIT ──────────────────────────────────────────────────────
 let isStateAdmin=false;
 async function checkAccess(user){
@@ -1399,7 +1527,10 @@ async function checkAccess(user){
 
   currentPlayer=player;
   isStateAdmin=(player.role==='admin'); // only full admins (you + TMQ) edit the state ranking
-  if(isStateAdmin){const rt=document.getElementById('rankingTab');if(rt)rt.style.display='';}
+  if(isStateAdmin){
+    const rt=document.getElementById('rankingTab');if(rt)rt.style.display='';
+    const at=document.getElementById('accessTab');if(at)at.style.display='';
+  }
 
   // Load alliances this player can manage (same alliance they belong to, or all if super-admin)
   let q=sb.from('alliances').select('*');
