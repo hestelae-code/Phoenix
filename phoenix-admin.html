@@ -198,6 +198,7 @@ body{padding-bottom:72px !important;}
       <button class="etab" data-sec="memberzone">🔒 Members Zone</button>
       <button class="etab" data-sec="ranking" id="rankingTab" style="display:none">🏆 State Ranking</button>
       <button class="etab" data-sec="access" id="accessTab" style="display:none">🔑 Access</button>
+      <button class="etab" data-sec="frames" id="framesTab" style="display:none">🖼️ Marcos</button>
     </div>
 
     <!-- IDENTITY -->
@@ -427,6 +428,34 @@ body{padding-bottom:72px !important;}
       </div>
     </div>
 
+    <!-- FRAMES MANAGEMENT (admins + r5 only) -->
+    <div class="esec" id="sec-frames">
+      <div class="card">
+        <div class="slabel" style="margin-top:0;">🖼️ Marcos de perfil</div>
+        <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:6px;">Otorga o retira marcos a cualquier jugador. El jugador elige cuál mostrar desde su perfil.</p>
+        <p style="font-size:.76rem;color:var(--muted);margin-bottom:14px;">Los marcos de rango (Hielo, Dorado, Llama) se asignan automáticamente con el rango. Los de logro los otorgas tú manualmente.</p>
+        <div class="field">
+          <label>Buscar jugador por nombre o Governor ID</label>
+          <input id="framesSearch" placeholder="Escribe un nombre o ID…">
+        </div>
+        <div id="framesResults" class="dlist" style="margin-top:10px;"></div>
+        <div class="errmsg" id="framesErr" style="margin-top:10px;"></div>
+        <div id="framesMsg" style="margin-top:8px;font-size:.82rem;color:#1a7a3a;"></div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(200,168,75,.06),rgba(200,168,75,.02));border-color:rgba(200,168,75,.2);">
+        <div class="slabel" style="margin-top:0;color:#c8a84b;">📖 Guía de marcos</div>
+        <div style="font-size:.78rem;color:var(--ink-soft);line-height:1.6;">
+          <b style="color:var(--ink);">❄️ Hielo</b> — Miembro confirmado (automático)<br>
+          <b style="color:var(--ink);">🥇 Dorado</b> — R4 (automático con rango)<br>
+          <b style="color:var(--ink);">🔥 Llama</b> — R5 (automático con rango)<br>
+          <b style="color:var(--ink);">🐻 Cazador</b> — 10 Bear Traps con asistencia<br>
+          <b style="color:var(--ink);">⚔️ SvS MVP</b> — Top 3 daño en SvS<br>
+          <b style="color:var(--ink);">⭐ Perfecto</b> — 100% asistencia 30 días<br>
+          <b style="color:var(--ink);">👑 Leyenda</b> — Globo del estado (muy exclusivo)
+        </div>
+      </div>
+    </div>
+
     <!-- CONFIG TEMPLATE (export / import) -->
     <div style="margin-top:20px;padding:16px;background:linear-gradient(180deg,#fff7e6,#fff0d8);border:2px solid #ffd9a0;border-radius:14px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:1rem;color:#c2470f;margin-bottom:4px;">📋 Config template</div>
@@ -608,6 +637,7 @@ document.querySelectorAll('.etab').forEach(t=>t.onclick=()=>{
   if(sec==='members')loadMembersEditor();
   if(sec==='ranking')loadRankingEditor();
   if(sec==='access')loadAccessAlliances();
+  if(sec==='frames'){document.getElementById('framesSearch').value='';document.getElementById('framesResults').innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px;">Escribe al menos 2 caracteres…</p>';document.getElementById('framesMsg').textContent='';}
 });
 
 // ── DYNAMIC LIST HELPERS ──────────────────────────────────────
@@ -1508,6 +1538,113 @@ $('#accessSearch').addEventListener('input', (e)=>{
   }, 350);
 });
 
+// ── FRAMES MANAGEMENT ────────────────────────────────────────
+const ALL_FRAMES = [
+  { id:'bear',   label:'🐻 Cazador',  hint:'10 Bear Traps' },
+  { id:'svs',    label:'⚔️ SvS MVP',  hint:'Top 3 daño SvS' },
+  { id:'perf',   label:'⭐ Perfecto', hint:'100% asistencia' },
+  { id:'legend', label:'👑 Leyenda',  hint:'Globo del estado' }
+];
+
+function framesPlayerHTML(p) {
+  const unlocked = Array.isArray(p.unlocked_frames) ? p.unlocked_frames : [];
+  const frameToggles = ALL_FRAMES.map(f => {
+    const has = unlocked.includes(f.id);
+    return `<button type="button"
+      class="btn ${has ? 'btn-fire' : 'btn-ghost'} frame-toggle"
+      data-frame="${f.id}"
+      data-pid="${p.id}"
+      style="font-size:.75rem;padding:6px 10px;flex:1;min-width:120px;"
+    >${f.label} ${has ? '✓' : '+'}<br><span style="font-size:.6rem;opacity:.7">${f.hint}</span></button>`;
+  }).join('');
+  return `<div class="ditem" data-id="${p.id}">
+    <div class="ditem-header">
+      <span class="dtag">${p.name||'(sin nombre)'}</span>
+      <span style="font-size:.72rem;color:var(--muted);">ID ${p.governor_id||'—'}</span>
+    </div>
+    <div style="font-size:.76rem;color:var(--ink-soft);margin-bottom:8px;">
+      Marcos actuales: <b>${unlocked.length ? unlocked.map(f=>ALL_FRAMES.find(x=>x.id===f)?.label||f).join(', ') : 'ninguno'}</b>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${frameToggles}</div>
+  </div>`;
+}
+
+let framesSearchTimer = null;
+document.getElementById('framesSearch').addEventListener('input', e => {
+  clearTimeout(framesSearchTimer);
+  const q = e.target.value.trim();
+  const results = document.getElementById('framesResults');
+  document.getElementById('framesMsg').textContent = '';
+  if (q.length < 2) {
+    results.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px;">Escribe al menos 2 caracteres…</p>';
+    return;
+  }
+  framesSearchTimer = setTimeout(async () => {
+    hideErr('#framesErr');
+    results.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:8px;">Buscando…</p>';
+    const { data, error } = await sb.from('players')
+      .select('id,name,governor_id,unlocked_frames,active_frame,alliance_id')
+      .or(`name.ilike.%${q}%,governor_id.ilike.%${q}%`)
+      .limit(15);
+    if (error) { showErr('#framesErr', 'Error: ' + error.message); results.innerHTML = ''; return; }
+    if (!data || !data.length) {
+      results.innerHTML = '<p style="color:var(--muted);font-size:.82rem;padding:8px;">No hay jugadores que coincidan.</p>';
+      return;
+    }
+    results.innerHTML = '';
+    data.forEach(p => {
+      const d = document.createElement('div');
+      d.innerHTML = framesPlayerHTML(p);
+      const node = d.firstElementChild;
+      // Wire toggle buttons
+      node.querySelectorAll('.frame-toggle').forEach(btn => {
+        btn.onclick = async () => {
+          const frameId = btn.dataset.frame;
+          const pid = btn.dataset.pid;
+          // Get current unlocked_frames fresh
+          const { data: fresh } = await sb.from('players').select('unlocked_frames').eq('id', pid).single();
+          let frames = Array.isArray(fresh?.unlocked_frames) ? [...fresh.unlocked_frames] : [];
+          const has = frames.includes(frameId);
+          if (has) {
+            frames = frames.filter(f => f !== frameId);
+          } else {
+            frames.push(frameId);
+          }
+          btn.textContent = '…'; btn.disabled = true;
+          const { error } = await sb.from('players').update({ unlocked_frames: frames }).eq('id', pid);
+          btn.disabled = false;
+          if (error) {
+            showErr('#framesErr', 'Error al guardar: ' + error.message);
+            btn.textContent = has ? '✓' : '+';
+          } else {
+            const msg = document.getElementById('framesMsg');
+            const fname = ALL_FRAMES.find(f => f.id === frameId)?.label || frameId;
+            msg.textContent = `✓ ${p.name||'Jugador'}: marco ${fname} ${has ? 'retirado' : 'concedido'}.`;
+            toast('Marco actualizado ✓');
+            // Refresh the player row
+            p.unlocked_frames = frames;
+            const fresh_d = document.createElement('div');
+            fresh_d.innerHTML = framesPlayerHTML(p);
+            const newNode = fresh_d.firstElementChild;
+            newNode.querySelectorAll('.frame-toggle').forEach(b2 => {
+              b2.onclick = btn.parentElement.closest('.ditem').querySelector(`[data-frame="${b2.dataset.frame}"]`).onclick;
+            });
+            node.replaceWith(newNode);
+            // Re-wire new node
+            newNode.querySelectorAll('.frame-toggle').forEach(b2 => {
+              b2.onclick = async () => {
+                // trigger full re-search for simplicity
+                document.getElementById('framesSearch').dispatchEvent(new Event('input'));
+              };
+            });
+          }
+        };
+      });
+      results.appendChild(node);
+    });
+  }, 350);
+});
+
 // ── INIT ──────────────────────────────────────────────────────
 let isStateAdmin=false;
 async function checkAccess(user){
@@ -1530,6 +1667,10 @@ async function checkAccess(user){
   if(isStateAdmin){
     const rt=document.getElementById('rankingTab');if(rt)rt.style.display='';
     const at=document.getElementById('accessTab');if(at)at.style.display='';
+  }
+  // Frames tab: visible for admins and r5
+  if(player.role==='admin'||player.role==='r5'){
+    const ft=document.getElementById('framesTab');if(ft)ft.style.display='';
   }
 
   // Load alliances this player can manage (same alliance they belong to, or all if super-admin)

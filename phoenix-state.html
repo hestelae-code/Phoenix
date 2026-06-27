@@ -89,6 +89,55 @@
   .arow .pw{font-family:'Fredoka'; font-weight:600; font-size:.82rem; color:var(--ice-deep);}
   .tag-home{font-size:.6rem; background:var(--fire); color:#fff; padding:2px 7px; border-radius:8px; margin-left:6px; font-family:'Fredoka'; vertical-align:middle;}
 
+  /* ── ALLIANCE RANK FRAMES ── */
+  /* Shield badge for top 3 */
+  .arow-shield {
+    position:relative;
+    width:44px; height:44px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .shield-body {
+    width:44px; height:50px;
+    clip-path: polygon(50% 0%, 100% 18%, 100% 60%, 50% 100%, 0% 60%, 0% 18%);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; flex-shrink:0;
+  }
+  .shield-num {
+    font-family:'Baloo 2'; font-weight:900; font-size:1.1rem;
+    color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.5);
+    position:relative; z-index:2; line-height:1;
+  }
+  /* #1 — Gold with fire glow */
+  .arow.rank1 { border:2px solid #c8a84b; background:linear-gradient(135deg,#fffbf0,#fff8e0); box-shadow:0 2px 0 #c8a84b, 0 0 16px rgba(200,168,75,.2); }
+  .arow.rank1 .shield-body { background:linear-gradient(180deg,#ffe566,#c8a84b,#8b6914); box-shadow:0 0 14px rgba(200,168,75,.7), 0 3px 8px rgba(0,0,0,.3); animation:shieldGold 2s ease-in-out infinite alternate; }
+  @keyframes shieldGold { from{box-shadow:0 0 10px rgba(200,168,75,.5);} to{box-shadow:0 0 22px rgba(255,220,80,.9),0 0 35px rgba(200,168,75,.4);} }
+  .arow.rank1::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; border-radius:12px; background:linear-gradient(135deg,rgba(255,220,80,.08),transparent); pointer-events:none; }
+
+  /* #2 — Silver/Blue */
+  .arow.rank2 { border:2px solid #7fb8e0; background:linear-gradient(135deg,#f0f8ff,#e4f2fc); box-shadow:0 2px 0 #7fb8e0, 0 0 12px rgba(127,184,224,.15); }
+  .arow.rank2 .shield-body { background:linear-gradient(180deg,#c8e8ff,#7fb8e0,#3a6898); box-shadow:0 0 12px rgba(127,184,224,.6), 0 3px 8px rgba(0,0,0,.3); animation:shieldSilver 2.5s ease-in-out infinite alternate; }
+  @keyframes shieldSilver { from{box-shadow:0 0 8px rgba(127,184,224,.4);} to{box-shadow:0 0 18px rgba(197,232,255,.8),0 0 28px rgba(127,184,224,.3);} }
+
+  /* #3 — Bronze/Purple */
+  .arow.rank3 { border:2px solid #b44be8; background:linear-gradient(135deg,#fdf5ff,#f5e8ff); box-shadow:0 2px 0 #9c27b0, 0 0 12px rgba(180,75,232,.12); }
+  .arow.rank3 .shield-body { background:linear-gradient(180deg,#e040fb,#9c27b0,#4a148c); box-shadow:0 0 12px rgba(180,75,232,.6), 0 3px 8px rgba(0,0,0,.3); animation:shieldBronze 2s ease-in-out infinite alternate; }
+  @keyframes shieldBronze { from{box-shadow:0 0 8px rgba(156,39,176,.4);} to{box-shadow:0 0 18px rgba(224,64,251,.8),0 0 28px rgba(156,39,176,.3);} }
+
+  /* Crown for #1 */
+  .arow.rank1 .arow-shield::after { content:'👑'; position:absolute; top:-10px; left:50%; transform:translateX(-50%); font-size:14px; animation:crownBob 1.5s ease-in-out infinite; }
+  @keyframes crownBob { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(-3px);} }
+
+  /* Frame badge strip below name */
+  .al-frame-badge {
+    display:inline-flex; align-items:center; gap:3px;
+    font-size:.6rem; font-family:'Fredoka'; font-weight:600;
+    padding:2px 7px; border-radius:8px; margin-left:6px;
+    vertical-align:middle;
+  }
+  .al-frame-badge.gold  { background:linear-gradient(135deg,#ffe08a,#c8a84b); color:#3d2a00; }
+  .al-frame-badge.silver{ background:linear-gradient(135deg,#c8e8ff,#7fb8e0); color:#0d2e4a; }
+  .al-frame-badge.purple{ background:linear-gradient(135deg,#e040fb,#9c27b0); color:#fff; }
+
   /* castle countdown */
   .castle{background:linear-gradient(180deg,#fff,var(--panel)); border:2px solid var(--panel-edge); border-radius:16px; padding:18px; margin-bottom:12px; box-shadow:0 4px 0 var(--panel-edge); position:relative; overflow:hidden;}
   .astat{background:linear-gradient(180deg,#fff,var(--panel));border:2px solid var(--panel-edge);border-radius:14px;padding:14px 10px;box-shadow:0 3px 0 var(--panel-edge);}
@@ -870,14 +919,35 @@ applyLang();
       const isPXR=al.tag==='PXR';
       const div=document.createElement('div');
       const rankClass=num===1?'rank1':num===2?'rank2':num===3?'rank3':'';
-      const medal=num===1?'🥇':num===2?'🥈':num===3?'🥉':'';
+
+      // Shield for top 3, plain number for rest
+      let rkHtml='';
+      if(num===1){
+        rkHtml=`<div class="arow-shield"><div class="shield-body"><span class="shield-num">1</span></div></div>`;
+      }else if(num===2){
+        rkHtml=`<div class="arow-shield"><div class="shield-body"><span class="shield-num">2</span></div></div>`;
+      }else if(num===3){
+        rkHtml=`<div class="arow-shield"><div class="shield-body"><span class="shield-num">3</span></div></div>`;
+      }else{
+        rkHtml=`<div class="rk">${rank}</div>`;
+      }
+
+      // Frame badge label
+      const frameBadge = num===1
+        ? `<span class="al-frame-badge gold">🥇 #1</span>`
+        : num===2
+        ? `<span class="al-frame-badge silver">🥈 #2</span>`
+        : num===3
+        ? `<span class="al-frame-badge purple">🥉 #3</span>`
+        : '';
+
       div.className='arow'+(isPXR?' us':'')+' '+(rankClass);
-      let nameHtml=`[${al.tag}] ${al.name}`;
+      let nameHtml=`[${al.tag}] ${al.name}${frameBadge}`;
       if(isPXR) nameHtml+=` <span class="tag-home">Featured</span>`;
       let sub='';
       if(al.members) sub=`${al.members} players`;
       const href=`phoenix-alliance.html?tag=${al.tag}`;
-      div.innerHTML=`<div class="rk">${medal||rank}</div><div class="nm">${nameHtml}${sub?'<small>'+sub+'</small>':''}</div>`;
+      div.innerHTML=`${rkHtml}<div class="nm">${nameHtml}${sub?'<small>'+sub+'</small>':''}</div>`;
       div.style.cursor='pointer';
       div.onclick=()=>location.href=href;
       container.appendChild(div);
