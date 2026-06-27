@@ -163,6 +163,7 @@ async function maybeLoadFromSupabase(){
     CONFIG.resell       = cfg.resell        || {show:false,text:'',link:''};
   }
   CONFIG.memberZone = cfg.memberZone || null;
+  CONFIG.defaultLang = cfg.defaultLang || '';
   CONFIG.gallery    = Array.isArray(cfg.gallery) ? cfg.gallery : [];
   CONFIG.rankNames  = cfg.rankNames  || null;
   // PXR premium background
@@ -461,6 +462,75 @@ function renderMemberZone(mz){
   }
   @keyframes battleShake{0%{transform:rotate(-5deg);}100%{transform:rotate(5deg);}}
 
+  /* === ICE THEME === */
+  body.ice{background:linear-gradient(180deg,#dcefff,#a9d8f0 50%,#7fbce0);}
+  body.ice .ahero .theme-canvas::before{
+    content:'❄️';position:absolute;top:8px;left:14px;font-size:1.8rem;
+    animation:iceFloat 3s ease-in-out infinite alternate;filter:drop-shadow(0 0 10px rgba(160,220,255,.9));
+  }
+  body.ice .ahero .theme-canvas::after{
+    content:'❄️';position:absolute;bottom:6px;right:16px;font-size:1.4rem;
+    animation:iceFloat 2.4s ease-in-out infinite alternate-reverse;filter:drop-shadow(0 0 8px rgba(160,220,255,.7));
+  }
+  @keyframes iceFloat{0%{transform:translateY(0) rotate(-8deg);}100%{transform:translateY(-5px) rotate(8deg);}}
+
+  /* === NIGHT THEME === */
+  body.night{background:radial-gradient(ellipse at 50% 0%,#16263f,#0a1422 70%);color:#cfe0f0;}
+  body.night .ahero .theme-canvas::before{
+    content:'✨';position:absolute;top:10px;right:18px;font-size:1.6rem;
+    animation:nightTwinkle 2s ease-in-out infinite alternate;
+  }
+  body.night .ahero .theme-canvas::after{
+    content:'🌙';position:absolute;bottom:6px;left:14px;font-size:1.8rem;
+    filter:drop-shadow(0 0 12px rgba(255,240,180,.6));
+  }
+  @keyframes nightTwinkle{0%{opacity:.4;transform:scale(.8);}100%{opacity:1;transform:scale(1.2);}}
+
+  /* === BLOOD THEME === */
+  body.blood{background:radial-gradient(ellipse at 50% 0%,#3a0d0d,#1a0606 70%);color:#f0d0d0;}
+  body.blood .ahero .theme-canvas::before{
+    content:'🩸';position:absolute;top:8px;left:16px;font-size:1.7rem;
+    animation:bloodDrip 2.5s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(200,30,30,.8));
+  }
+  body.blood .ahero .theme-canvas::after{
+    content:'⚔️';position:absolute;bottom:6px;right:14px;font-size:1.6rem;opacity:.8;
+    animation:battleShake 1s ease-in-out infinite alternate;
+  }
+  @keyframes bloodDrip{0%{transform:translateY(0);opacity:1;}50%{transform:translateY(4px);opacity:.7;}100%{transform:translateY(0);opacity:1;}}
+
+  /* === EMERALD THEME === */
+  body.emerald{background:linear-gradient(180deg,#1a3a2a,#0d2418 60%,#081810);color:#d0f0dc;}
+  body.emerald .ahero .theme-canvas::before{
+    content:'🍃';position:absolute;top:10px;left:14px;font-size:1.6rem;
+    animation:emeraldSway 3s ease-in-out infinite alternate;filter:drop-shadow(0 0 8px rgba(80,200,120,.7));
+  }
+  body.emerald .ahero .theme-canvas::after{
+    content:'🌿';position:absolute;bottom:6px;right:16px;font-size:1.5rem;
+    animation:emeraldSway 2.6s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes emeraldSway{0%{transform:rotate(-10deg) translateX(0);}100%{transform:rotate(10deg) translateX(4px);}}
+
+  /* === STORM THEME === */
+  body.storm{background:linear-gradient(180deg,#2a3038,#1a1f26 60%,#10141a);color:#d8e0e8;}
+  body.storm .ahero .theme-canvas::before{
+    content:'⚡';position:absolute;top:8px;right:16px;font-size:1.8rem;
+    animation:stormFlash 2s ease-in-out infinite;filter:drop-shadow(0 0 12px rgba(180,200,255,.9));
+  }
+  body.storm .ahero .theme-canvas::after{
+    content:'🌩️';position:absolute;bottom:6px;left:14px;font-size:1.6rem;opacity:.8;
+  }
+  @keyframes stormFlash{0%,90%,100%{opacity:.5;}92%,96%{opacity:1;transform:scale(1.2);}94%{opacity:.3;}}
+
+  /* ── ENTRANCE ANIMATIONS ── */
+  @keyframes slideDown{from{opacity:0;transform:translateY(-24px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeScale{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+  .anim-header{animation:slideDown .6s ease-out both;}
+  .anim-stats{animation:fadeScale .6s ease-out .2s both;}
+  .anim-tabs{animation:slideUp .5s ease-out .35s both;}
+  .anim-card{animation:slideUp .5s ease-out both;}
+  @media (prefers-reduced-motion:reduce){.anim-header,.anim-stats,.anim-tabs,.anim-card{animation:none;}}
+
   /* ── PXR PREMIUM BACKGROUND ────────────────────────────────── */
   body.pxr-premium{
     background:
@@ -720,19 +790,19 @@ body{padding-bottom:72px !important;}
 </div></div>
 
 <div class="shell">
-  <div class="ahero">
+  <div class="ahero anim-header">
     <div class="theme-canvas" id="themeCanvas" aria-hidden="true"></div>
     <div class="acrest" id="acrest"></div>
     <div class="atag" id="atag"></div>
     <div class="aname" id="aname"></div>
     <div class="amotto" id="amotto"></div>
-    <div class="astats">
+    <div class="astats anim-stats">
       <div class="astat"><div class="n" id="stRank"></div><div class="l" data-i18n="st.rank">State rank</div></div>
       <div class="astat"><div class="n" id="stMem"></div><div class="l" data-i18n="st.members">Members</div></div>
     </div>
   </div>
 
-  <div class="tabbar"><div class="tabrow">
+  <div class="tabbar anim-tabs"><div class="tabrow">
     <button class="tab active" data-tab="home" data-i18n="tab.home">Home</button>
     <button class="tab" data-tab="roster" data-i18n="tab.roster">Leadership</button>
     <button class="tab" data-tab="events" data-i18n="tab.events">Events</button>
@@ -876,9 +946,13 @@ function applyConfig(){
   const c=CONFIG;
   // Apply theme (dark fire&ice or light)
   // Apply theme — remove all theme classes, then add the selected one
-  document.body.classList.remove('dark','snow','rainbow','skull','neutral','wosblue','battle','fire');
+  document.body.classList.remove('dark','snow','rainbow','skull','neutral','wosblue','battle','fire','ice','night','blood','emerald','storm');
   const themeClass=c.theme&&c.theme!=='light'?c.theme:'';
   if(themeClass)document.body.classList.add(themeClass);
+  // Apply default language (only if user hasn't picked one this session)
+  if(c.defaultLang && !window._langPicked && I18N[c.defaultLang]){
+    LANG=c.defaultLang;
+  }
   setVar('--acc',c.accent); setVar('--acc-d',c.accentDark); setVar('--acc-sh',c.accentShadow);
   // Alliance gallery
   const gg=$('#galleryGrid'), ge=$('#galleryEmpty');
@@ -996,7 +1070,7 @@ function renderDynamic(){
 
 // i18n (fixed labels only)
 const langMenu=$('#langMenu');
-Object.keys(I18N).forEach(code=>{ const b=document.createElement('button'); b.textContent=I18N[code].name; b.dataset.code=code; b.onclick=()=>{ LANG=code; applyLang(); langMenu.classList.remove('open'); }; langMenu.appendChild(b); });
+Object.keys(I18N).forEach(code=>{ const b=document.createElement('button'); b.textContent=I18N[code].name; b.dataset.code=code; b.onclick=()=>{ LANG=code; window._langPicked=true; applyLang(); langMenu.classList.remove('open'); }; langMenu.appendChild(b); });
 $('#langBtn').onclick=()=>langMenu.classList.toggle('open');
 document.addEventListener('click',e=>{ if(!e.target.closest('.lang-box')) langMenu.classList.remove('open'); });
 function applyLang(){

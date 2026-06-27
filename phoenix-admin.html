@@ -289,7 +289,33 @@ body{padding-bottom:72px !important;}
           <button type="button" class="btn btn-ghost theme-opt" data-theme="neutral" id="themeNeutral">⚪ Neutral</button>
           <button type="button" class="btn btn-ghost theme-opt" data-theme="wosblue" id="themeWosblue">🔵 WOS Blue</button>
           <button type="button" class="btn btn-ghost theme-opt" data-theme="battle" id="themeBattle">⚔️ Battle</button>
+          <button type="button" class="btn btn-ghost theme-opt" data-theme="ice" id="themeIce">🧊 Ice</button>
+          <button type="button" class="btn btn-ghost theme-opt" data-theme="night" id="themeNight">🌙 Night</button>
+          <button type="button" class="btn btn-ghost theme-opt" data-theme="blood" id="themeBlood">🩸 Blood</button>
+          <button type="button" class="btn btn-ghost theme-opt" data-theme="emerald" id="themeEmerald">💚 Emerald</button>
+          <button type="button" class="btn btn-ghost theme-opt" data-theme="storm" id="themeStorm">⚡ Storm</button>
         </div>
+        <div class="slabel" style="margin-top:18px;">🌐 Default language</div>
+        <p style="font-size:.78rem;color:var(--ink-soft);margin-bottom:8px;">Language visitors see first when they open this alliance's page.</p>
+        <select id="fDefaultLang" style="width:100%;padding:10px;border:1.5px solid var(--panel-edge);border-radius:10px;font-family:'Fredoka';font-size:.9rem;color:var(--ink);">
+          <option value="">🌍 Auto (browser language)</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="pt">🇧🇷 Português</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="tr">🇹🇷 Türkçe</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="ar">🇸🇦 العربية</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="id">🇮🇩 Indonesia</option>
+          <option value="vi">🇻🇳 Tiếng Việt</option>
+          <option value="th">🇹🇭 ไทย</option>
+          <option value="pl">🇵🇱 Polski</option>
+        </select>
       </div>
       <div class="card">
         <div class="slabel" style="margin-top:0;">🖼️ Alliance Logo</div>
@@ -577,7 +603,7 @@ $('#addValueBtn').onclick=()=>{
 // Theme selector
 let selectedTheme='light';
 const THEME_IDS=['light','dark','snow','rainbow','skull','neutral','wosblue','battle'];
-const THEME_BTN={light:'themeLight',dark:'themeDark',snow:'themeSnow',rainbow:'themeRainbow',skull:'themeSkull',neutral:'themeNeutral',wosblue:'themeWosblue',battle:'themeBattle'};
+const THEME_BTN={light:'themeLight',dark:'themeDark',snow:'themeSnow',rainbow:'themeRainbow',skull:'themeSkull',neutral:'themeNeutral',wosblue:'themeWosblue',battle:'themeBattle',ice:'themeIce',night:'themeNight',blood:'themeBlood',emerald:'themeEmerald',storm:'themeStorm'};
 function setThemeUI(t){
   if(!THEME_IDS.includes(t))t='light';
   selectedTheme=t;
@@ -879,6 +905,7 @@ function loadEditor(al){
   $('#fAccent').value=al.accent||'#ff7a2e';
   updateSwatches();
   setThemeUI(cfg.theme||'light');
+  const dlEl=document.getElementById('fDefaultLang');if(dlEl)dlEl.value=cfg.defaultLang||'';
   $('#fLogoUrl').value=cfg.logoUrl||'';
   $('#fLogoUrl').dispatchEvent(new Event('input'));
 
@@ -952,6 +979,7 @@ $('#saveBtn').onclick=async()=>{
     accentDark:dark,
     accentShadow:shadow,
     theme:selectedTheme,
+    defaultLang:$('#fDefaultLang').value||'',
     logoUrl:$('#fLogoUrl').value.trim(),
     memberZone:{
       discord:$('#fDiscord').value.trim(),
