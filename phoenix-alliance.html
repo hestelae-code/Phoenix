@@ -723,6 +723,17 @@ function renderMemberZone(mz){
   .rrow .rank.r5{background:linear-gradient(180deg,var(--gold),var(--gold-deep));}
 
   .ev{display:flex; align-items:center; gap:12px; padding:12px 14px; background:#fff; border:2px solid var(--panel-edge); border-radius:14px; margin-bottom:9px; box-shadow:0 2px 0 var(--panel-edge);}
+  /* Event card with banner image header */
+  .evb{background:#fff; border:2px solid var(--panel-edge); border-radius:16px; margin-bottom:12px; box-shadow:0 2px 0 var(--panel-edge); overflow:hidden;}
+  .evb-banner{height:120px; background-size:cover; background-position:center; position:relative; display:flex; align-items:flex-end;}
+  .evb-banner::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.72));}
+  .evb-title{position:relative; z-index:1; padding:10px 14px; color:#fff; font-family:'Fredoka'; font-weight:600; font-size:1.02rem; text-shadow:0 2px 6px rgba(0,0,0,.8);}
+  .evb-body{display:flex; align-items:center; gap:12px; padding:11px 14px;}
+  .evb-body .ic{font-size:1.4rem; flex:none;}
+  .evb-body .info{flex:1;}
+  .evb-body .info span{display:block; font-size:.74rem; color:var(--muted);}
+  .evb-body .time{font-family:'Fredoka'; font-weight:600; font-size:.78rem; color:var(--acc-d); text-align:right; line-height:1.3;}
+  body.dark .evb,body.night .evb,body.blood .evb,body.storm .evb,body.emerald .evb,body.battle .evb,body.skull .evb,body.wosblue .evb{background:#0d1b2a; border-color:#264866;}
   .ev .ic{font-size:1.5rem; flex:none;}
   .ev .info{flex:1;}
   .ev .info b{font-family:'Fredoka'; font-weight:600; color:var(--ink); font-size:.92rem;}
@@ -1051,12 +1062,22 @@ function renderDynamic(){
       rl.innerHTML+=`<div class="rrow"><div class="av">${ini}</div><div class="nm"><b>${l.name}</b><span>${roleTxt}</span></div><div class="rank ${l.rank==='R5'?'r5':''}">${rankLbl}</div></div>`;
     });
   }else rl.innerHTML=emptyMsg;
-  // events
+  // events — show a banner header if the event name matches a known event
   const el=$('#eventsList'); el.innerHTML='';
   if(c.events.length){
     c.events.forEach(e=>{
       const times = e.t2 ? `${e.t1}<br>${e.t2}` : e.t1;
-      el.innerHTML+=`<div class="ev"><div class="ic">${e.icon}</div><div class="info"><b>${e.name}</b><span>${e.freq}</span></div><div class="time">${times}</div></div>`;
+      const banner = eventBanner(e.name);
+      if(banner){
+        el.innerHTML+=`<div class="evb">
+          <div class="evb-banner" style="background-image:url('${banner}')">
+            <div class="evb-title">${e.icon||''} ${e.name}</div>
+          </div>
+          <div class="evb-body"><div class="info"><span>${e.freq||''}</span></div><div class="time">${times}</div></div>
+        </div>`;
+      } else {
+        el.innerHTML+=`<div class="ev"><div class="ic">${e.icon}</div><div class="info"><b>${e.name}</b><span>${e.freq}</span></div><div class="time">${times}</div></div>`;
+      }
     });
   }else el.innerHTML=emptyMsg;
   // rules
@@ -1071,8 +1092,21 @@ function renderDynamic(){
   }else nw.innerHTML=emptyMsg;
 }
 
-// i18n (fixed labels only)
-const langMenu=$('#langMenu');
+// Map an event name to its banner image in Supabase Storage (multilingual keywords)
+const EVENT_BANNER_BASE='https://vghutrfcrqgelvgdeesl.supabase.co/storage/v1/object/public/eventos/';
+function eventBanner(name){
+  if(!name) return null;
+  const n=name.toLowerCase();
+  if(n.includes('oso')||n.includes('bear')||n.includes('cacer')) return EVENT_BANNER_BASE+'bear_trap.jpg';
+  if(n.includes('fundici')||n.includes('foundry')) return EVENT_BANNER_BASE+'foundry.jpg';
+  if(n.includes('ruta')||n.includes('tundra')||n.includes('trade')||n.includes('comercial')) return EVENT_BANNER_BASE+'trade_route.jpg';
+  if(n.includes('fuerte')||n.includes('fort')||n.includes('stronghold')) return EVENT_BANNER_BASE+'fort.jpg';
+  if(n.includes('mercenari')||n.includes('mercenary')||n.includes('prestigio')||n.includes('prestige')) return EVENT_BANNER_BASE+'mercenary.jpg';
+  if(n.includes('campeonato')||n.includes('championship')||n.includes('alliance champ')) return EVENT_BANNER_BASE+'championship.jpg';
+  return null;
+}
+
+
 Object.keys(I18N).forEach(code=>{ const b=document.createElement('button'); b.textContent=I18N[code].name; b.dataset.code=code; b.onclick=()=>{ LANG=code; window._langPicked=true; applyLang(); langMenu.classList.remove('open'); }; langMenu.appendChild(b); });
 $('#langBtn').onclick=()=>langMenu.classList.toggle('open');
 document.addEventListener('click',e=>{ if(!e.target.closest('.lang-box')) langMenu.classList.remove('open'); });
