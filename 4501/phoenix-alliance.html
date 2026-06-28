@@ -189,10 +189,10 @@ async function checkMemberZone(){
   try{
     const{data:{session}}=await _sb.auth.getSession();
     if(!session?.user)return; // not logged in → no private zone
+    // A user may have several profiles — check if ANY belongs to THIS alliance
     const{data:rows}=await _sb.from('players').select('alliance_id,alliance_confirmed')
-      .eq('owner',session.user.id).order('created_at',{ascending:false}).limit(1);
-    const me=rows&&rows[0];
-    const isMember=me && me.alliance_id===CONFIG._allianceId && me.alliance_confirmed;
+      .eq('owner',session.user.id);
+    const isMember=(rows||[]).some(me=>me.alliance_id===CONFIG._allianceId && me.alliance_confirmed);
     if(isMember && CONFIG.memberZone) renderMemberZone(CONFIG.memberZone);
   }catch(e){console.warn('Member zone check skipped:',e);}
 }

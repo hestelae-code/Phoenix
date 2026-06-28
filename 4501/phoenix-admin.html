@@ -1732,14 +1732,18 @@ let isStateAdmin=false;
 async function checkAccess(user){
  try{
   const timeout=ms=>new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms));
-  // Get player profile to check role (limit(1) to survive duplicate rows)
+  // Get ALL player profiles for this user (they may have several now)
   const{data:rows,error:perr}=await Promise.race([
-    sb.from('players').select('*').eq('owner',user.id).order('created_at',{ascending:false}).limit(1),
+    sb.from('players').select('*').eq('owner',user.id).order('created_at',{ascending:false}),
     timeout(8000)
   ]);
   if(perr)throw perr;
-  const player=rows&&rows.length?rows[0]:null;
-  if(!player){show('scDenied');return;}
+  const allProfiles=rows||[];
+  if(!allProfiles.length){show('scDenied');return;}
+
+  // Find the highest-privilege profile (admin > r5 > r4 > member)
+  const rank=r=>r==='admin'?3:r==='r5'?2:r==='r4'?1:0;
+  const player=allProfiles.slice().sort((a,b)=>rank(b.role)-rank(a.role))[0];
 
   const isAdmin=player.role==='admin'||player.role==='r4'||player.role==='r5';
   if(!isAdmin){show('scDenied');return;}
