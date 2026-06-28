@@ -371,6 +371,10 @@ input,textarea,select{font-family:'Inter',sans-serif;}
       </div>
     </div>
 
+    <div class="field" id="fStateWrap" style="display:none;"><label data-i18n="f.state">State / Server <span class="req">*</span></label>
+      <select id="fState"></select>
+      <div class="hint" data-i18n="f.state.hint">Which state is this character in?</div>
+    </div>
     <div class="field"><label data-i18n="f.gid">Governor ID <span class="req">*</span></label>
       <input type="text" id="fGid" placeholder="9-digit ID" maxlength="12" inputmode="numeric">
       <div class="hint" data-i18n="f.gid.hint">Required. Leaders use this to verify you're in the alliance.</div>
@@ -536,8 +540,8 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const I18N={
-  en:{name:"English",dir:"ltr",t:{"empty.title":"Your page is waiting","empty.l1":"A leader from your alliance invited you to create your Phoenix page.","empty.l2":"You decide what to show. It's yours.","empty.cta":"Create my page","signin.link":"Already have a page? Sign in","dir.browse":"Browse player pages","dir.title":"PXR Players","back":"Back","nav.profile":"Profile","form.title":"My page","form.sub":"Fill in what you want. Anything left blank won't be shown.","f.photo":"Profile photo","f.photo.hint":"Or leave blank — we'll use your initials.","f.gid":"Governor ID","f.gid.hint":"Required. Leaders use this to verify you're in the alliance.","f.name":"In-game name","f.avatar":"Initials","f.lang":"Language(s)","f.country":"Country / TZ","f.alliance":"Alliance","f.alliance.hint":"Pending until a leader confirms.","f.bio":"About me","help.label":"Available to help with","sec.power":"Power (optional)","sec.about":"About me","sec.badges":"Badges","power.t":"Show my power","power.s":"Hidden by default.","save":"Save my page","cancel":"Cancel","edit":"Edit","edit.long":"Edit my page","show":"Show","hide":"Hide","badges.note":"Special badges are awarded by leaders (R5 + R4) — they recognize who you are, not your numbers.","pending":"pending confirmation","pick.title":"Your characters","pick.sub":"Pick a character to manage, or create a new one.","pick.new":"Create new character","pick.signout":"Sign out","pick.server":"Server","pick.switch":"My characters"}},
-  es:{name:"Español",dir:"ltr",t:{"empty.title":"Tu página te espera","empty.l1":"Un líder de tu alianza te invitó a crear tu página en Phoenix.","empty.l2":"Tú decides qué mostrar. Es tuya.","empty.cta":"Crear mi página","signin.link":"¿Ya tienes página? Inicia sesión","dir.browse":"Ver páginas de jugadores","dir.title":"Jugadores PXR","back":"Volver","nav.profile":"Perfil","form.title":"Mi página","form.sub":"Rellena lo que quieras. Lo que dejes vacío no se muestra.","f.photo":"Foto de perfil","f.photo.hint":"O déjalo vacío — usaremos tus iniciales.","f.gid":"ID de gobernador","f.gid.hint":"Obligatorio. Los líderes lo usan para verificarte.","f.name":"Nombre en el juego","f.avatar":"Iniciales","f.lang":"Idioma(s)","f.country":"País / Zona horaria","f.alliance":"Alianza","f.alliance.hint":"Pendiente hasta que un líder confirme.","f.bio":"Sobre mí","help.label":"Disponible para ayudar con","sec.power":"Poder (opcional)","sec.about":"Sobre mí","sec.badges":"Insignias","power.t":"Mostrar mi poder","power.s":"Oculto por defecto.","save":"Guardar mi página","cancel":"Cancelar","edit":"Editar","edit.long":"Editar mi página","show":"Mostrar","hide":"Ocultar","badges.note":"Las insignias especiales las otorgan los líderes (R5 + R4).","pending":"pendiente de confirmar"}},
+  en:{name:"English",dir:"ltr",t:{"empty.title":"Your page is waiting","empty.l1":"A leader from your alliance invited you to create your Phoenix page.","empty.l2":"You decide what to show. It's yours.","empty.cta":"Create my page","signin.link":"Already have a page? Sign in","dir.browse":"Browse player pages","dir.title":"PXR Players","back":"Back","nav.profile":"Profile","form.title":"My page","form.sub":"Fill in what you want. Anything left blank won't be shown.","f.photo":"Profile photo","f.photo.hint":"Or leave blank — we'll use your initials.","f.gid":"Governor ID","f.gid.hint":"Required. Leaders use this to verify you're in the alliance.","f.name":"In-game name","f.avatar":"Initials","f.lang":"Language(s)","f.country":"Country / TZ","f.alliance":"Alliance","f.alliance.hint":"Pending until a leader confirms.","f.bio":"About me","help.label":"Available to help with","sec.power":"Power (optional)","sec.about":"About me","sec.badges":"Badges","power.t":"Show my power","power.s":"Hidden by default.","save":"Save my page","cancel":"Cancel","edit":"Edit","edit.long":"Edit my page","show":"Show","hide":"Hide","badges.note":"Special badges are awarded by leaders (R5 + R4) — they recognize who you are, not your numbers.","pending":"pending confirmation","pick.title":"Your characters","pick.sub":"Pick a character to manage, or create a new one.","pick.new":"Create new character","pick.signout":"Sign out","pick.server":"Server","pick.switch":"My characters","f.state":"State / Server","f.state.hint":"Which state is this character in?"}},
+  es:{name:"Español",dir:"ltr",t:{"empty.title":"Tu página te espera","empty.l1":"Un líder de tu alianza te invitó a crear tu página en Phoenix.","empty.l2":"Tú decides qué mostrar. Es tuya.","empty.cta":"Crear mi página","signin.link":"¿Ya tienes página? Inicia sesión","dir.browse":"Ver páginas de jugadores","dir.title":"Jugadores PXR","back":"Volver","nav.profile":"Perfil","form.title":"Mi página","form.sub":"Rellena lo que quieras. Lo que dejes vacío no se muestra.","f.photo":"Foto de perfil","f.photo.hint":"O déjalo vacío — usaremos tus iniciales.","f.gid":"ID de gobernador","f.gid.hint":"Obligatorio. Los líderes lo usan para verificarte.","f.name":"Nombre en el juego","f.avatar":"Iniciales","f.lang":"Idioma(s)","f.country":"País / Zona horaria","f.alliance":"Alianza","f.alliance.hint":"Pendiente hasta que un líder confirme.","f.bio":"Sobre mí","help.label":"Disponible para ayudar con","sec.power":"Poder (opcional)","sec.about":"Sobre mí","sec.badges":"Insignias","power.t":"Mostrar mi poder","power.s":"Oculto por defecto.","save":"Guardar mi página","cancel":"Cancelar","edit":"Editar","edit.long":"Editar mi página","show":"Mostrar","hide":"Ocultar","badges.note":"Las insignias especiales las otorgan los líderes (R5 + R4).","pending":"pendiente de confirmar","pick.title":"Tus personajes","pick.sub":"Elige un personaje para gestionar, o crea uno nuevo.","pick.new":"Crear nuevo personaje","pick.signout":"Cerrar sesión","pick.server":"Servidor","pick.switch":"Mis personajes","f.state":"Estado / Servidor","f.state.hint":"¿En qué estado está este personaje?"}},
   ko:{name:"한국어",dir:"ltr",t:{"empty.title":"당신의 페이지가 기다립니다","empty.cta":"내 페이지 만들기","signin.link":"이미 페이지가 있나요? 로그인","dir.browse":"플레이어 페이지 보기","dir.title":"PXR 플레이어","back":"뒤로","nav.profile":"프로필","form.title":"내 페이지","form.sub":"원하는 것만 입력하세요.","f.photo":"프로필 사진","f.photo.hint":"비워두면 이니셜을 사용합니다.","f.gid":"군주 ID","f.gid.hint":"필수.","f.name":"게임 내 이름","f.avatar":"이니셜","f.lang":"언어","f.country":"국가 / 시간대","f.alliance":"동맹","f.alliance.hint":"리더 확인까지 보류.","f.bio":"소개","help.label":"도와줄 수 있는 것","sec.power":"전투력","sec.about":"소개","sec.badges":"배지","power.t":"전투력 표시","power.s":"기본은 숨김.","save":"저장","cancel":"취소","edit":"편집","edit.long":"페이지 편집","show":"표시","hide":"숨기기","badges.note":"특별 배지는 리더(R5+R4)가 수여합니다.","pending":"확인 대기 중"}},
   ja:{name:"日本語",dir:"ltr",t:{"empty.title":"あなたのページが待っています","empty.cta":"ページを作成","signin.link":"すでにページがありますか？","dir.browse":"プレイヤーページを見る","dir.title":"PXRプレイヤー","back":"戻る","nav.profile":"プロフィール","form.title":"マイページ","form.sub":"必要な項目だけ入力。","f.photo":"プロフィール写真","f.photo.hint":"空欄なら頭文字を使用。","f.gid":"総督ID","f.gid.hint":"必須。","f.name":"ゲーム内の名前","f.avatar":"頭文字","f.lang":"言語","f.country":"国 / TZ","f.alliance":"同盟","f.alliance.hint":"リーダーが確認するまで保留。","f.bio":"自己紹介","help.label":"手伝えること","sec.power":"戦力","sec.about":"自己紹介","sec.badges":"バッジ","power.t":"戦力を表示","power.s":"既定は非表示。","save":"保存","cancel":"キャンセル","edit":"編集","edit.long":"ページを編集","show":"表示","hide":"非表示","badges.note":"特別バッジはリーダー（R5+R4）が授与。","pending":"確認待ち"}},
   "zh-Hant":{name:"繁體中文",dir:"ltr",t:{"empty.title":"你的頁面在等你","empty.cta":"建立我的頁面","signin.link":"已有頁面？登入","dir.browse":"瀏覽玩家頁面","dir.title":"PXR玩家","back":"返回","nav.profile":"個人頁","form.title":"我的頁面","form.sub":"填寫你想要的。","f.photo":"個人照片","f.photo.hint":"留空則使用縮寫。","f.gid":"領主ID","f.gid.hint":"必填。","f.name":"遊戲內名稱","f.avatar":"縮寫","f.lang":"語言","f.country":"國家 / 時區","f.alliance":"聯盟","f.alliance.hint":"待領袖確認。","f.bio":"關於我","help.label":"可以幫忙的事","sec.power":"戰力","sec.about":"關於我","sec.badges":"徽章","power.t":"顯示我的戰力","power.s":"預設隱藏。","save":"儲存","cancel":"取消","edit":"編輯","edit.long":"編輯我的頁面","show":"顯示","hide":"隱藏","badges.note":"特殊徽章由領袖（R5+R4）授予。","pending":"待確認"}},
@@ -558,6 +562,7 @@ let LANG='en',currentUser=null,currentProfile=null,prevState='empty';
 let myProfiles=[]; // all profiles owned by this user (across states)
 let creatingNew=false; // true when creating an additional profile
 let alliances=[],badges=[],playerBadges=[],powerOn=false,signupMode=true;
+let allStates=['3139']; // populated from Supabase states table
 const $=s=>document.querySelector(s);
 function T(k){return I18N[LANG]?.t[k]||I18N.en.t[k]||k;}
 
@@ -684,7 +689,8 @@ if($('#pickerNewBtn'))$('#pickerNewBtn').onclick=()=>{
   creatingNew=true; currentProfile=null;
   // reset form for a fresh profile
   ['#fPhotoUrl','#fGid','#fName','#fAvatar','#fLang','#fCountry','#fBio','#fHelp','#fNickSuggest','#fBannerUrl','#fGal1','#fGal2','#fGal3'].forEach(s=>{const el=$(s);if(el)el.value='';});
-  populateAlliances(); show('edit'); applyLang();
+  const sw=$('#fStateWrap'); if(sw)sw.style.display=''; // show state picker for new char
+  renderStateOptions(); populateAlliances(); show('edit'); applyLang();
 };
 if($('#pickerSignOut'))$('#pickerSignOut').onclick=()=>signOut();
 $('#authSwitch').onclick=()=>setAuthMode(!signupMode);
@@ -751,12 +757,9 @@ async function loadProfile(){
     if(myProfiles.length===0){
       // No profiles yet → go straight to creating the first one
       currentProfile=null; creatingNew=true;
-      populateAlliances(); show('edit');
-    } else if(myProfiles.length===1){
-      // Exactly one → open it directly
-      await selectProfile(myProfiles[0].id);
+      renderStateOptions(); populateAlliances(); show('edit');
     } else {
-      // Multiple → show the picker (grouped by state, like the game)
+      // Always show the character picker (the control center for all accounts)
       renderPicker(); show('picker');
     }
   }catch(e){
@@ -815,11 +818,25 @@ async function selectProfile(profileId){
 const INVITE_TAG=new URLSearchParams(location.search).get('invite');
 const isViewMode=!!new URLSearchParams(location.search).get('view');
 
+// Populate the state selector when creating a new character
+function renderStateOptions(){
+  const sel=$('#fState'); if(!sel)return;
+  sel.innerHTML='';
+  const states=allStates.length?allStates:['3139'];
+  states.forEach(st=>{const o=document.createElement('option');o.value=st;o.textContent=`State #${st}`;sel.appendChild(o);});
+  // default to the state of the page you're on
+  if(states.includes(PAGE_STATE))sel.value=PAGE_STATE;
+  sel.onchange=()=>populateAlliances();
+}
+
 function populateAlliances(){
   const sel=$('#fAlliance');
   sel.innerHTML=`<option value="">— ${T('f.alliance')} —</option>`;
-  alliances.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=`[${a.tag}] ${a.name}`;sel.appendChild(o);});
-  // Preselect from existing profile, or from invite link
+  // Filter alliances by the chosen state (new char) or the profile's state (editing)
+  const targetState=creatingNew ? ($('#fState')?.value||PAGE_STATE) : (currentProfile?.state_id||PAGE_STATE);
+  alliances.filter(a=>!a.state_id||String(a.state_id)===String(targetState)).forEach(a=>{
+    const o=document.createElement('option');o.value=a.id;o.textContent=`[${a.tag}] ${a.name}`;sel.appendChild(o);
+  });
   if(currentProfile?.alliance_id){sel.value=currentProfile.alliance_id;}
   else if(INVITE_TAG){
     const inv=alliances.find(a=>a.tag.toUpperCase()===INVITE_TAG.toUpperCase());
@@ -851,9 +868,7 @@ function openEditor(){
   $('#fGal2').value=gal[1]||'';
   $('#fGal3').value=gal[2]||'';
   powerOn=false;
-  
-  
-  
+  const sw=$('#fStateWrap'); if(sw)sw.style.display='none'; // state is fixed when editing
   updatePreview();
   populateAlliances();
   show('edit');
@@ -868,7 +883,8 @@ $('#saveBtn').addEventListener('click',async()=>{
   const photoUrl=$('#fPhotoUrl').value.trim();
   const ini=($('#fAvatar').value.trim()||name.slice(0,2)).toUpperCase();
   const avatarVal=photoUrl||ini;
-  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:(currentProfile?.state_id)||PAGE_STATE,bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false,banner_url:$('#fBannerUrl').value.trim()||null,gallery:[$('#fGal1').value.trim(),$('#fGal2').value.trim(),$('#fGal3').value.trim()].filter(Boolean),nickname_suggested:$('#fNickSuggest').value.trim()||null};
+  const newState=creatingNew ? ($('#fState')?.value||PAGE_STATE) : ((currentProfile?.state_id)||PAGE_STATE);
+  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:newState,bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false,banner_url:$('#fBannerUrl').value.trim()||null,gallery:[$('#fGal1').value.trim(),$('#fGal2').value.trim(),$('#fGal3').value.trim()].filter(Boolean),nickname_suggested:$('#fNickSuggest').value.trim()||null};
   const btn=$('#saveBtn');btn.textContent='...';btn.disabled=true;
   // Update by THIS profile's id (not owner) so other profiles are untouched. Insert if new.
   const{error}=(currentProfile&&!creatingNew)?await sb.from('players').update(pd).eq('id',currentProfile.id):await sb.from('players').insert(pd);
@@ -876,6 +892,7 @@ $('#saveBtn').addEventListener('click',async()=>{
   if(error){errEl.textContent='Error: '+error.message;errEl.classList.add('show');}
   else{
     toast('Saved ✓');
+    creatingNew=false;
     await loadProfile();
     // If they picked an alliance, offer a quick jump to that alliance page
     const allianceId=$('#fAlliance').value;
@@ -1066,15 +1083,17 @@ async function init(){
   applyLang();
   try{
     const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),10000));
-    const[ar,br]=await Promise.race([
+    const[ar,br,sr]=await Promise.race([
       Promise.all([
-        sb.from('alliances').select('id,tag,name').eq('state_id','3139'),
-        sb.from('badges').select('*').order('created_at')
+        sb.from('alliances').select('id,tag,name,state_id'),
+        sb.from('badges').select('*').order('created_at'),
+        sb.from('states').select('id')
       ]),
       timeout
     ]);
     if(ar.data)alliances=ar.data;
     if(br.data)badges=br.data;
+    if(sr.data)allStates=sr.data.map(s=>String(s.id)).sort();
   }catch(e){console.warn('Init fetch timed out, continuing:',e.message);}
 
   // ── VIEW ANOTHER PLAYER'S PROFILE (?view=ID) ────────────────
