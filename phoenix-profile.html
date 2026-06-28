@@ -337,6 +337,19 @@ input,textarea,select{font-family:'Inter',sans-serif;}
   </div>
 </div>
 
+<!-- PROFILE PICKER (multi-account, grouped by state) -->
+<div id="picker" class="hidden">
+  <div class="form-wrap">
+    <h2 data-i18n="pick.title">Your characters</h2>
+    <p class="form-sub" data-i18n="pick.sub">Pick a character to manage, or create a new one.</p>
+    <button class="btn btn-fire" id="pickerNewBtn" style="width:100%;margin-bottom:16px;">➕ <span data-i18n="pick.new">Create new character</span></button>
+    <div id="pickerList"></div>
+    <div style="text-align:center;margin-top:16px;">
+      <button class="btn btn-ghost btn-sm" id="pickerSignOut" data-i18n="pick.signout">Sign out</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT FORM -->
 <div id="edit" class="hidden">
   <div class="form-wrap">
@@ -459,6 +472,7 @@ input,textarea,select{font-family:'Inter',sans-serif;}
     <div id="premiumUpsell" style="display:none;margin-top:18px;"></div>
     <div class="foot-actions">
       <button class="btn btn-fire btn-sm" id="editBtn2" data-i18n="edit.long">Edit my page</button>
+      <button class="btn btn-ghost btn-sm" id="switchCharBtn" style="display:none;">🔄 <span data-i18n="pick.switch">My characters</span></button>
       <button class="btn btn-ghost btn-sm" id="browseBtnView">👥 <span data-i18n="dir.browse">Browse players</span></button>
       <button class="btn btn-ghost btn-sm" id="signOutView">Sign out</button>
     </div>
@@ -522,7 +536,7 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 const I18N={
-  en:{name:"English",dir:"ltr",t:{"empty.title":"Your page is waiting","empty.l1":"A leader from your alliance invited you to create your Phoenix page.","empty.l2":"You decide what to show. It's yours.","empty.cta":"Create my page","signin.link":"Already have a page? Sign in","dir.browse":"Browse player pages","dir.title":"PXR Players","back":"Back","nav.profile":"Profile","form.title":"My page","form.sub":"Fill in what you want. Anything left blank won't be shown.","f.photo":"Profile photo","f.photo.hint":"Or leave blank — we'll use your initials.","f.gid":"Governor ID","f.gid.hint":"Required. Leaders use this to verify you're in the alliance.","f.name":"In-game name","f.avatar":"Initials","f.lang":"Language(s)","f.country":"Country / TZ","f.alliance":"Alliance","f.alliance.hint":"Pending until a leader confirms.","f.bio":"About me","help.label":"Available to help with","sec.power":"Power (optional)","sec.about":"About me","sec.badges":"Badges","power.t":"Show my power","power.s":"Hidden by default.","save":"Save my page","cancel":"Cancel","edit":"Edit","edit.long":"Edit my page","show":"Show","hide":"Hide","badges.note":"Special badges are awarded by leaders (R5 + R4) — they recognize who you are, not your numbers.","pending":"pending confirmation"}},
+  en:{name:"English",dir:"ltr",t:{"empty.title":"Your page is waiting","empty.l1":"A leader from your alliance invited you to create your Phoenix page.","empty.l2":"You decide what to show. It's yours.","empty.cta":"Create my page","signin.link":"Already have a page? Sign in","dir.browse":"Browse player pages","dir.title":"PXR Players","back":"Back","nav.profile":"Profile","form.title":"My page","form.sub":"Fill in what you want. Anything left blank won't be shown.","f.photo":"Profile photo","f.photo.hint":"Or leave blank — we'll use your initials.","f.gid":"Governor ID","f.gid.hint":"Required. Leaders use this to verify you're in the alliance.","f.name":"In-game name","f.avatar":"Initials","f.lang":"Language(s)","f.country":"Country / TZ","f.alliance":"Alliance","f.alliance.hint":"Pending until a leader confirms.","f.bio":"About me","help.label":"Available to help with","sec.power":"Power (optional)","sec.about":"About me","sec.badges":"Badges","power.t":"Show my power","power.s":"Hidden by default.","save":"Save my page","cancel":"Cancel","edit":"Edit","edit.long":"Edit my page","show":"Show","hide":"Hide","badges.note":"Special badges are awarded by leaders (R5 + R4) — they recognize who you are, not your numbers.","pending":"pending confirmation","pick.title":"Your characters","pick.sub":"Pick a character to manage, or create a new one.","pick.new":"Create new character","pick.signout":"Sign out","pick.server":"Server","pick.switch":"My characters"}},
   es:{name:"Español",dir:"ltr",t:{"empty.title":"Tu página te espera","empty.l1":"Un líder de tu alianza te invitó a crear tu página en Phoenix.","empty.l2":"Tú decides qué mostrar. Es tuya.","empty.cta":"Crear mi página","signin.link":"¿Ya tienes página? Inicia sesión","dir.browse":"Ver páginas de jugadores","dir.title":"Jugadores PXR","back":"Volver","nav.profile":"Perfil","form.title":"Mi página","form.sub":"Rellena lo que quieras. Lo que dejes vacío no se muestra.","f.photo":"Foto de perfil","f.photo.hint":"O déjalo vacío — usaremos tus iniciales.","f.gid":"ID de gobernador","f.gid.hint":"Obligatorio. Los líderes lo usan para verificarte.","f.name":"Nombre en el juego","f.avatar":"Iniciales","f.lang":"Idioma(s)","f.country":"País / Zona horaria","f.alliance":"Alianza","f.alliance.hint":"Pendiente hasta que un líder confirme.","f.bio":"Sobre mí","help.label":"Disponible para ayudar con","sec.power":"Poder (opcional)","sec.about":"Sobre mí","sec.badges":"Insignias","power.t":"Mostrar mi poder","power.s":"Oculto por defecto.","save":"Guardar mi página","cancel":"Cancelar","edit":"Editar","edit.long":"Editar mi página","show":"Mostrar","hide":"Ocultar","badges.note":"Las insignias especiales las otorgan los líderes (R5 + R4).","pending":"pendiente de confirmar"}},
   ko:{name:"한국어",dir:"ltr",t:{"empty.title":"당신의 페이지가 기다립니다","empty.cta":"내 페이지 만들기","signin.link":"이미 페이지가 있나요? 로그인","dir.browse":"플레이어 페이지 보기","dir.title":"PXR 플레이어","back":"뒤로","nav.profile":"프로필","form.title":"내 페이지","form.sub":"원하는 것만 입력하세요.","f.photo":"프로필 사진","f.photo.hint":"비워두면 이니셜을 사용합니다.","f.gid":"군주 ID","f.gid.hint":"필수.","f.name":"게임 내 이름","f.avatar":"이니셜","f.lang":"언어","f.country":"국가 / 시간대","f.alliance":"동맹","f.alliance.hint":"리더 확인까지 보류.","f.bio":"소개","help.label":"도와줄 수 있는 것","sec.power":"전투력","sec.about":"소개","sec.badges":"배지","power.t":"전투력 표시","power.s":"기본은 숨김.","save":"저장","cancel":"취소","edit":"편집","edit.long":"페이지 편집","show":"표시","hide":"숨기기","badges.note":"특별 배지는 리더(R5+R4)가 수여합니다.","pending":"확인 대기 중"}},
   ja:{name:"日本語",dir:"ltr",t:{"empty.title":"あなたのページが待っています","empty.cta":"ページを作成","signin.link":"すでにページがありますか？","dir.browse":"プレイヤーページを見る","dir.title":"PXRプレイヤー","back":"戻る","nav.profile":"プロフィール","form.title":"マイページ","form.sub":"必要な項目だけ入力。","f.photo":"プロフィール写真","f.photo.hint":"空欄なら頭文字を使用。","f.gid":"総督ID","f.gid.hint":"必須。","f.name":"ゲーム内の名前","f.avatar":"頭文字","f.lang":"言語","f.country":"国 / TZ","f.alliance":"同盟","f.alliance.hint":"リーダーが確認するまで保留。","f.bio":"自己紹介","help.label":"手伝えること","sec.power":"戦力","sec.about":"自己紹介","sec.badges":"バッジ","power.t":"戦力を表示","power.s":"既定は非表示。","save":"保存","cancel":"キャンセル","edit":"編集","edit.long":"ページを編集","show":"表示","hide":"非表示","badges.note":"特別バッジはリーダー（R5+R4）が授与。","pending":"確認待ち"}},
@@ -541,12 +555,22 @@ const I18N={
 const WEEDS_TR={es:"Somos como la maleza de la tierra. Siempre creciendo. Bellos para algunos, feos para otros. Un regalo para muchos, una maldición para pocos. Nutrientes cuando hacen falta, y veneno a veces.",ko:"우리는 대지의 잡초와 같다. 늘 자라난다. 누군가에겐 아름답고, 누군가에겐 보기 싫다.",ja:"我々は大地の雑草のようなもの。常に育ち続ける。ある者には美しく、ある者には醜い。","zh-Hant":"我們如同大地的野草。永遠在生長。對某些人是美，對某些人是醜。","zh-Hans":"我们如同大地的野草。永远在生长。对某些人是美，对某些人是丑。",de:"Wie das Unkraut der Erde sind wir. Immer wachsend. Für manche schön, für andere hässlich.",fr:"Nous sommes comme les mauvaises herbes de la terre. Toujours à croître.",ar:"نحن كأعشاب الأرض. ننمو دائمًا. جميلون لدى البعض، قبيحون لدى آخرين.",ru:"Мы как сорняки земли. Всегда растём. Для одних красивы, для других уродливы.",tr:"Biz toprağın yabani otları gibiyiz. Hep büyürüz. Kimine güzel, kimine çirkin.",it:"Siamo come le erbacce della terra. Sempre in crescita. Belle per alcuni, brutte per altri.",pl:"Jesteśmy jak chwasty ziemi. Wciąż rosnące. Dla jednych piękne, dla innych brzydkie.",pt:"Somos como o mato da terra. Sempre crescendo. Belos para uns, feios para outros."};
 
 let LANG='en',currentUser=null,currentProfile=null,prevState='empty';
+let myProfiles=[]; // all profiles owned by this user (across states)
+let creatingNew=false; // true when creating an additional profile
 let alliances=[],badges=[],playerBadges=[],powerOn=false,signupMode=true;
 const $=s=>document.querySelector(s);
 function T(k){return I18N[LANG]?.t[k]||I18N.en.t[k]||k;}
 
+// ── STATE DETECTION (multi-state support) ─────────────────────
+// Detects which state this page belongs to from its folder path.
+// /Phoenix/4501/... → "4501", otherwise default "3139".
+const PAGE_STATE=(function(){
+  const m=location.pathname.match(/\/(\d{3,4})\//);
+  return m?m[1]:'3139';
+})();
+
 // ── SHOW ──────────────────────────────────────────────────────
-const ALL_STATES=['loading','empty','auth','edit','view','directory','pubview'];
+const ALL_STATES=['loading','empty','auth','picker','edit','view','directory','pubview'];
 function show(s){
   if(!['loading'].includes(s)&&!['loading'].includes(prevState)) prevState=s==='pubview'||s==='directory'?prevState:s;
   ALL_STATES.forEach(x=>{const el=$('#'+x);if(el)el.classList.toggle('hidden',x!==s);});
@@ -655,6 +679,14 @@ function setAuthMode(signup){
 $('#createBtn').onclick=()=>{setAuthMode(true);show('auth');};
 $('#loginBtn').onclick=()=>{setAuthMode(false);show('auth');};
 $('#authBack').onclick=()=>show('empty');
+// Picker buttons
+if($('#pickerNewBtn'))$('#pickerNewBtn').onclick=()=>{
+  creatingNew=true; currentProfile=null;
+  // reset form for a fresh profile
+  ['#fPhotoUrl','#fGid','#fName','#fAvatar','#fLang','#fCountry','#fBio','#fHelp','#fNickSuggest','#fBannerUrl','#fGal1','#fGal2','#fGal3'].forEach(s=>{const el=$(s);if(el)el.value='';});
+  populateAlliances(); show('edit'); applyLang();
+};
+if($('#pickerSignOut'))$('#pickerSignOut').onclick=()=>signOut();
 $('#authSwitch').onclick=()=>setAuthMode(!signupMode);
 
 // Show/hide forgot password link — only in sign-in mode
@@ -710,25 +742,71 @@ $('#authSubmit').addEventListener('click',async()=>{
 async function loadProfile(){
   const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),8000));
   try{
-    // Use limit(1) + array instead of maybeSingle() to survive duplicate rows
-    const query=sb.from('players').select('*').eq('owner',currentUser.id).order('created_at',{ascending:false}).limit(1);
+    // Load ALL profiles owned by this user, across every state
+    const query=sb.from('players').select('*').eq('owner',currentUser.id).order('created_at',{ascending:false});
     const{data:rows,error}=await Promise.race([query,timeout]);
     if(error){throw error;}
-    const data=rows&&rows.length?rows[0]:null;
-    if(data){
-      currentProfile=data;
-      try{
-        const{data:pb}=await sb.from('player_badges').select('badge_id').eq('player_id',data.id);
-        playerBadges=pb?pb.map(p=>p.badge_id):[];
-      }catch(badgeErr){console.warn('Badges load failed (non-critical):',badgeErr);playerBadges=[];}
-      try{ renderView(data); }catch(rvErr){ console.error('renderView failed:',rvErr); }
-      show('view');
-    }else{populateAlliances();show('edit');}
+    myProfiles=rows||[];
+
+    if(myProfiles.length===0){
+      // No profiles yet → go straight to creating the first one
+      currentProfile=null; creatingNew=true;
+      populateAlliances(); show('edit');
+    } else if(myProfiles.length===1){
+      // Exactly one → open it directly
+      await selectProfile(myProfiles[0].id);
+    } else {
+      // Multiple → show the picker (grouped by state, like the game)
+      renderPicker(); show('picker');
+    }
   }catch(e){
     console.error('Profile load error:',e);
-    // Only show error if we have no profile to display
     if(!currentProfile){toast('Connection error. Check Supabase settings.',true);show('empty');}
   }
+  applyLang();
+}
+
+// Render the character picker, grouped by state (mirrors the in-game screen)
+function renderPicker(){
+  const list=$('#pickerList'); if(!list)return;
+  list.innerHTML='';
+  // group profiles by state_id
+  const byState={};
+  myProfiles.forEach(p=>{const s=p.state_id||'—';(byState[s]=byState[s]||[]).push(p);});
+  const states=Object.keys(byState).sort();
+  states.forEach(st=>{
+    const head=document.createElement('div');
+    head.style.cssText='font-family:Fredoka;font-weight:600;font-size:.82rem;color:var(--ink-soft);background:var(--ice-soft,#e8f2fb);border-radius:10px;padding:7px 12px;margin:14px 0 8px;';
+    head.textContent=`⭐ ${T('pick.server')||'Server'} #${st}`;
+    list.appendChild(head);
+    byState[st].forEach(p=>{
+      const a=alliances.find(x=>x.id===p.alliance_id);
+      const lbl=a?`[${a.tag}] ${p.name}`:p.name;
+      const card=document.createElement('button');
+      card.className='picker-card';
+      card.style.cssText='display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:2px solid var(--panel-edge);border-radius:14px;padding:12px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 2px 0 var(--panel-edge);';
+      const av=isUrl(p.avatar)?`<img src="${p.avatar}" style="width:46px;height:46px;border-radius:11px;object-fit:cover;flex:none;">`:`<div style="width:46px;height:46px;border-radius:11px;background:var(--acc,#ff7a2e);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:800;font-size:1.05rem;flex:none;">${(p.avatar||p.name||'?').slice(0,2).toUpperCase()}</div>`;
+      const conf=p.alliance_confirmed?'🔥':'⏳';
+      card.innerHTML=`${av}<div style="flex:1;min-width:0;"><div style="font-family:Fredoka;font-weight:600;color:var(--ink);font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lbl}</div><div style="font-size:.74rem;color:var(--muted);">${conf} ${p.governor_id?'ID: '+p.governor_id:''}</div></div><div style="color:var(--acc,#ff7a2e);font-size:1.2rem;">›</div>`;
+      card.onclick=()=>selectProfile(p.id);
+      list.appendChild(card);
+    });
+  });
+}
+
+// Select a specific profile to manage/view
+async function selectProfile(profileId){
+  const data=myProfiles.find(p=>p.id===profileId);
+  if(!data)return;
+  currentProfile=data; creatingNew=false;
+  try{
+    const{data:pb}=await sb.from('player_badges').select('badge_id').eq('player_id',data.id);
+    playerBadges=pb?pb.map(p=>p.badge_id):[];
+  }catch(badgeErr){console.warn('Badges load failed:',badgeErr);playerBadges=[];}
+  try{ renderView(data); }catch(rvErr){ console.error('renderView failed:',rvErr); }
+  // Show "My characters" button only if the user has more than one profile
+  const sw=$('#switchCharBtn'); if(sw)sw.style.display=myProfiles.length>1?'':'none';
+  show('view');
   applyLang();
 }
 
@@ -790,9 +868,10 @@ $('#saveBtn').addEventListener('click',async()=>{
   const photoUrl=$('#fPhotoUrl').value.trim();
   const ini=($('#fAvatar').value.trim()||name.slice(0,2)).toUpperCase();
   const avatarVal=photoUrl||ini;
-  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:'3139',bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false,banner_url:$('#fBannerUrl').value.trim()||null,gallery:[$('#fGal1').value.trim(),$('#fGal2').value.trim(),$('#fGal3').value.trim()].filter(Boolean),nickname_suggested:$('#fNickSuggest').value.trim()||null};
+  const pd={owner:currentUser.id,governor_id:gid,name,avatar:avatarVal,languages:$('#fLang').value.trim(),country:$('#fCountry').value.trim(),alliance_id:$('#fAlliance').value||null,state_id:(currentProfile?.state_id)||PAGE_STATE,bio:$('#fBio').value.trim(),help_with:$('#fHelp').value.trim(),alliance_confirmed:currentProfile?.alliance_confirmed||false,banner_url:$('#fBannerUrl').value.trim()||null,gallery:[$('#fGal1').value.trim(),$('#fGal2').value.trim(),$('#fGal3').value.trim()].filter(Boolean),nickname_suggested:$('#fNickSuggest').value.trim()||null};
   const btn=$('#saveBtn');btn.textContent='...';btn.disabled=true;
-  const{error}=currentProfile?await sb.from('players').update(pd).eq('owner',currentUser.id):await sb.from('players').insert(pd);
+  // Update by THIS profile's id (not owner) so other profiles are untouched. Insert if new.
+  const{error}=(currentProfile&&!creatingNew)?await sb.from('players').update(pd).eq('id',currentProfile.id):await sb.from('players').insert(pd);
   btn.textContent=T('save');btn.disabled=false;
   if(error){errEl.textContent='Error: '+error.message;errEl.classList.add('show');}
   else{
@@ -919,7 +998,13 @@ async function loadPublicProfile(playerId){
 
 // ── NAVIGATION ────────────────────────────────────────────────
 $('#editBtn').onclick=openEditor;$('#editBtn2').onclick=openEditor;
-$('#cancelBtn').onclick=()=>{currentProfile?show('view'):show('empty');};
+if($('#switchCharBtn'))$('#switchCharBtn').onclick=()=>{renderPicker();show('picker');};
+$('#cancelBtn').onclick=()=>{
+  if(creatingNew && myProfiles.length>0){ creatingNew=false; renderPicker(); show('picker'); }
+  else if(currentProfile){ show('view'); }
+  else if(myProfiles.length>0){ renderPicker(); show('picker'); }
+  else { show('empty'); }
+};
 $('#browseBtn').onclick=loadDirectory;$('#browseBtnView').onclick=loadDirectory;
 $('#dirBack').onclick=()=>show(currentUser?'view':'empty');
 $('#pubBack').onclick=()=>show('directory');
@@ -973,7 +1058,7 @@ function renderGovBadges(leftEl, rightEl, extraWrap, extraGrid, earnedIds){
   }
 }
 
-async function signOut(){await sb.auth.signOut();currentUser=null;currentProfile=null;playerBadges=[];show('empty');applyLang();}
+async function signOut(){await sb.auth.signOut();currentUser=null;currentProfile=null;myProfiles=[];creatingNew=false;playerBadges=[];show('empty');applyLang();}
 $('#signOutEdit').onclick=signOut;$('#signOutView').onclick=signOut;
 
 // ── INIT ──────────────────────────────────────────────────────
