@@ -1004,10 +1004,12 @@ applyLang();
   }
 
   // Check if current user is admin → show Admin nav btn
+  // (a user can have several profiles now, so check if ANY is admin/r4/r5)
   const{data:{session}}=await sb.auth.getSession();
   if(session?.user){
-    const{data:player}=await sb.from('players').select('role').eq('owner',session.user.id).maybeSingle();
-    if(player&&(player.role==='admin'||player.role==='r4'||player.role==='r5')){
+    const{data:players}=await sb.from('players').select('role').eq('owner',session.user.id);
+    const isStaff=(players||[]).some(p=>p.role==='admin'||p.role==='r4'||p.role==='r5');
+    if(isStaff){
       document.getElementById('adminNavBtn').style.display='';
     }
   }
