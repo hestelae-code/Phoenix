@@ -123,7 +123,7 @@ async function maybeLoadFromSupabase(){
   const{data,error}=await q.maybeSingle();
   if(error||!data) return; // fallback to CONFIG if not found
   const cfg=data.config||{};
-  const isPXR=(data.tag && data.tag.toUpperCase()==='PXR');
+  const isPXR=(data.tag && data.tag.toUpperCase()==='PXR' && PAGE_STATE==='3139');
   CONFIG.tag=data.tag;
   CONFIG.name=data.name;
   CONFIG.state=data.state_id;
@@ -960,14 +960,10 @@ function openLightbox(url){
 // apply CONFIG to the page
 function applyConfig(){
   const c=CONFIG;
-  // PXR in a NON-3139 state starts with a clean slate: keep the brand identity
-  // (name, motto, TMQ quote, colours, logo) but clear all 3139-specific data
-  // (leaders, stats, events, rules, news). These get filled from the admin per state.
-  if((c.tag||'').toUpperCase()==='PXR' && PAGE_STATE!=='3139'){
-    c.leaders=[]; c.events=[]; c.rules=[]; c.news=[];
-    c.power=''; c.stateRank=''; c.members='';
-    // motto, quote, about, accent, theme, logoUrl stay — that's the PXR brand
-  }
+  // Note: PXR's "premium hardcoded" mode only applies in state 3139 (see isPXR
+  // above). In every other state, PXR is loaded from Supabase like any other
+  // alliance, so leaders/events/rules/news/power/stats already reflect what
+  // was saved in the admin — nothing to clear here.
   // Apply theme (dark fire&ice or light)
   // Apply theme — remove all theme classes, then add the selected one
   document.body.classList.remove('dark','snow','rainbow','skull','neutral','wosblue','battle','fire','ice','night','blood','emerald','storm');
