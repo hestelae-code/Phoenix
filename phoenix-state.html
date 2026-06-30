@@ -532,13 +532,20 @@ body{padding-bottom:72px !important;}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ── STATE DETECTION ───────────────────────────────────────────
-// The same file works in any state folder. /Phoenix/4501/ → "4501",
-// otherwise the root state "3139". One file, every state, zero edits.
-const STATE_ID=(function(){
-  const m=location.pathname.match(/\/(\d{3,5})\/[^\/]*$/);
-  return m?m[1]:'3139';
-})();
+// ── STATE SYSTEM (scalable, URL-based) ────────────────────────
+// The state is read from the URL: ?s=4501 → state 4501. No parameter → "3139".
+// ONE set of files serves every state. To change to pretty URLs later
+// (e.g. /4501), only getState() and stateUrl() need updating — nothing else.
+function getState(){
+  const s=new URLSearchParams(location.search).get('s');
+  return (s && /^\d{3,5}$/.test(s)) ? s : '3139';
+}
+// Build a link to another page that KEEPS the current state.
+function stateUrl(page){
+  const s=getState();
+  return s==='3139' ? page : page+(page.includes('?')?'&':'?')+'s='+s;
+}
+const STATE_ID=getState();
 const I18N = {
   en:{name:"English",dir:"ltr",t:{
     "realm":"Enter the Realm","hero.sub":"Many alliances. Thousands of players. One winter.","hero.tag":"Every state has a home. Every alliance, a banner. Every player, a page.","hero.winter":"Whiteout Survival · Community hub",
@@ -941,6 +948,17 @@ function setStateLabels(){
   const rl=document.getElementById('reglabel');if(rl)rl.textContent='#'+STATE_ID;
   const ns=document.getElementById('navstate');if(ns)ns.textContent=STATE_ID;
   document.title='State '+STATE_ID+' · Phoenix';
+  // Make every internal link carry the current state (?s=...)
+  document.querySelectorAll('a[href]').forEach(a=>{
+    const href=a.getAttribute('href');
+    if(!href) return;
+    // only rewrite links to our own pages
+    if(/phoenix-(state|alliance|admin|profile)\.html/.test(href)){
+      // strip any leading /Phoenix/ or ./ to make it relative
+      let clean=href.replace(/^\/Phoenix\//,'').replace(/^\.\//,'');
+      a.setAttribute('href', stateUrl(clean));
+    }
+  });
 }
 if(document.readyState!=='loading')setStateLabels();
 else document.addEventListener('DOMContentLoaded',setStateLabels);
@@ -990,7 +1008,7 @@ applyLang();
       if(isPXR) nameHtml+=` <span class="tag-home">Featured</span>`;
       let sub='';
       if(al.members) sub=`${al.members} players`;
-      const href=`phoenix-alliance.html?tag=${al.tag}`;
+      const href=stateUrl(`phoenix-alliance.html?tag=${al.tag}`);
       div.innerHTML=`${rkHtml}<div class="nm">${nameHtml}${sub?'<small>'+sub+'</small>':''}</div>`;
       div.style.cursor='pointer';
       div.onclick=()=>location.href=href;
@@ -999,7 +1017,7 @@ applyLang();
     // Add PXR visit button
     const btn=document.createElement('div');
     btn.style='text-align:center;margin-top:14px;';
-    btn.innerHTML=`<a href="./phoenix-alliance.html?tag=PXR" class="btn btn-blue">Visit PXR page</a>`;
+    btn.innerHTML=`<a href="${stateUrl('phoenix-alliance.html?tag=PXR')}" class="btn btn-blue">Visit PXR page</a>`;
     container.appendChild(btn);
   }
 

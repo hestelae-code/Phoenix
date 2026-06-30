@@ -108,7 +108,10 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const _sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 
 // Detect which state folder this page lives in (for nav labels & links)
-const PAGE_STATE=(function(){const m=location.pathname.match(/\/(\d{3,5})\/[^\/]*$/);return m?m[1]:'3139';})();
+// State from URL (?s=4501). No parameter → "3139". One file, every state.
+function getState(){const s=new URLSearchParams(location.search).get('s');return (s&&/^\d{3,5}$/.test(s))?s:'3139';}
+function stateUrl(page){const s=getState();return s==='3139'?page:page+(page.includes('?')?'&':'?')+'s='+s;}
+const PAGE_STATE=getState();
 
 async function maybeLoadFromSupabase(){
   const tag=new URLSearchParams(location.search).get('tag');
@@ -175,7 +178,7 @@ async function maybeLoadFromSupabase(){
   const navIc=document.getElementById('navActiveIc');
   const navBtn=document.getElementById('navActiveAlliance');
   if(navTag)navTag.textContent=data.tag||'Alliance';
-  if(navBtn)navBtn.href=`phoenix-alliance.html?tag=${data.tag}`;
+  if(navBtn)navBtn.href=stateUrl(`phoenix-alliance.html?tag=${data.tag}`);
   if(navIc){
     const logoUrl=cfg.logoUrl||'';
     if(logoUrl)navIc.innerHTML=`<img src="${logoUrl}" style="width:1.5rem;height:1.5rem;border-radius:6px;object-fit:cover;">`;
@@ -1051,7 +1054,7 @@ function applyConfig(){
   const legEl=document.getElementById('pxrLegend');
   if(legEl) legEl.style.display = (c.tag==='PXR' && PAGE_STATE==='3139') ? '' : 'none';
   // join button → player profile (or Discord if a link is set)
-  $('#joinBtn').href = `phoenix-profile.html?invite=${c.tag||'PXR'}`;
+  $('#joinBtn').href = stateUrl(`phoenix-profile.html?invite=${c.tag||'PXR'}`);
   // resell
   if(c.resell && c.resell.show){ $('#resellBox').style.display=''; const a=$('#resellLink'); a.textContent=c.resell.text+' →'; if(c.resell.link) a.href=c.resell.link; }
   renderDynamic();
@@ -1141,6 +1144,14 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
 function setStateNav(){
   const bn=document.getElementById('backStateNum');if(bn)bn.textContent=PAGE_STATE;
   const nn=document.getElementById('navStateNum');if(nn)nn.textContent=PAGE_STATE;
+  // Make every internal link carry the current state (?s=...)
+  document.querySelectorAll('a[href]').forEach(a=>{
+    const href=a.getAttribute('href'); if(!href) return;
+    if(/phoenix-(state|alliance|admin|profile)\.html/.test(href)){
+      let clean=href.replace(/^\/Phoenix\//,'').replace(/^\.\//,'');
+      a.setAttribute('href', stateUrl(clean));
+    }
+  });
 }
 if(document.readyState!=='loading')setStateNav();
 else document.addEventListener('DOMContentLoaded',setStateNav);
@@ -1174,7 +1185,7 @@ async function loadMembers(){
       row.className='rrow';
       row.style.cursor='pointer';
       row.innerHTML=`<div class="av">${av}</div><div class="nm"><b>${m.name||'—'}</b><span>${conf} ${lang}</span></div><div style="color:#bfd4e6;font-size:1.1rem;">›</div>`;
-      row.onclick=()=>location.href=`phoenix-profile.html?view=${m.id}`;
+      row.onclick=()=>location.href=stateUrl(`phoenix-profile.html?view=${m.id}`);
       list.appendChild(row);
     });
   }catch(e){console.warn('Members load failed:',e);list.innerHTML='';}

@@ -433,6 +433,20 @@ body{padding-bottom:72px !important;}
       <div class="card">
         <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:6px;">Drag-free ranking editor. Set each alliance's position number in the state. Lower = higher rank.</p>
         <p style="font-size:.76rem;color:var(--muted);margin-bottom:14px;">⚡ This is the global state list — only you and TMQ can edit it.</p>
+        <!-- State picker + create new state -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+          <label style="font-family:'Fredoka';font-weight:600;font-size:.82rem;color:var(--ink-soft);">State:</label>
+          <select id="rankStateSel" style="flex:1;min-width:120px;padding:9px;border:1.5px solid var(--panel-edge);border-radius:10px;font-family:'Fredoka';font-size:.85rem;"></select>
+          <button class="btn btn-ghost" id="newStateBtn" style="width:auto;white-space:nowrap;">➕ New state</button>
+        </div>
+        <div id="newStateForm" style="display:none;background:var(--ice-soft,#eef6fc);border-radius:12px;padding:14px;margin-bottom:14px;">
+          <p style="font-size:.82rem;color:var(--ink-soft);margin-bottom:8px;">Enter the new state's number (e.g. 4502). It will be created instantly — no code needed.</p>
+          <div style="display:flex;gap:8px;">
+            <input id="newStateNum" placeholder="State number" inputmode="numeric" maxlength="5" style="flex:1;padding:10px;border:1.5px solid var(--panel-edge);border-radius:10px;font-family:'Fredoka';">
+            <button class="btn btn-fire" id="createStateBtn" style="width:auto;white-space:nowrap;">Create</button>
+          </div>
+          <div class="errmsg" id="newStateErr" style="margin-top:8px;"></div>
+        </div>
         <div id="rankRows" class="dlist"></div>
         <div class="errmsg" id="rankErr" style="margin-top:10px;"></div>
         <button class="btn btn-fire" id="saveRankBtn" style="margin-top:12px;">💾 Save state ranking</button>
@@ -525,8 +539,22 @@ const SUPA_URL='https://vghutrfcrqgelvgdeesl.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaHV0cmZjcnFnZWx2Z2RlZXNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDQ4ODksImV4cCI6MjA5Nzc4MDg4OX0.uarvB0sTDPqS1AysfvDRJahRYRLiJaBO2kVIiyGaDAE';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 // Detect state folder for nav labels
-const PAGE_STATE=(function(){const m=location.pathname.match(/\/(\d{3,5})\/[^\/]*$/);return m?m[1]:'3139';})();
-(function(){function setLabels(){const b=document.getElementById('backStateNum');if(b)b.textContent=PAGE_STATE;const n=document.getElementById('navStateNum');if(n)n.textContent=PAGE_STATE;}if(document.readyState!=='loading')setLabels();else document.addEventListener('DOMContentLoaded',setLabels);})();
+// State from URL (?s=4501). No parameter → "3139".
+function getState(){const s=new URLSearchParams(location.search).get('s');return (s&&/^\d{3,5}$/.test(s))?s:'3139';}
+function stateUrl(page){const s=getState();return s==='3139'?page:page+(page.includes('?')?'&':'?')+'s='+s;}
+const PAGE_STATE=getState();
+(function(){function setLabels(){
+  const b=document.getElementById('backStateNum');if(b)b.textContent=PAGE_STATE;
+  const n=document.getElementById('navStateNum');if(n)n.textContent=PAGE_STATE;
+  // carry state in internal links
+  document.querySelectorAll('a[href]').forEach(a=>{
+    const href=a.getAttribute('href'); if(!href) return;
+    if(/phoenix-(state|alliance|admin|profile)\.html/.test(href)){
+      let clean=href.replace(/^\/Phoenix\//,'').replace(/^\.\//,'');
+      a.setAttribute('href', stateUrl(clean));
+    }
+  });
+}if(document.readyState!=='loading')setLabels();else document.addEventListener('DOMContentLoaded',setLabels);})();
 
 // ── STATE ─────────────────────────────────────────────────────
 let currentUser=null, currentPlayer=null, adminAlliances=[], editingAlliance=null;
@@ -916,16 +944,24 @@ function loadEditor(al){
   $('#edTitle').textContent=`[${al.tag}] ${al.name}`;
   $('#edSub').textContent='State '+al.state_id;
 
-  // Alliance switcher — show if managing more than one
+  // Alliance switcher — grouped by state, scales to many states
   const sw=$('#allianceSwitcher');
   if(adminAlliances.length>1){
     sw.style.display='';
     const sel=$('#switchAllianceSel');
     sel.innerHTML='';
-    adminAlliances.forEach(a=>{
-      const o=document.createElement('option');o.value=a.id;o.textContent=`[${a.tag}] ${a.name} · State ${a.state_id}`;
-      if(a.id===al.id)o.selected=true;
-      sel.appendChild(o);
+    // group alliances by state
+    const byState={};
+    adminAlliances.forEach(a=>{(byState[a.state_id]=byState[a.state_id]||[]).push(a);});
+    Object.keys(byState).sort().forEach(st=>{
+      const og=document.createElement('optgroup');
+      og.label=`State ${st}`;
+      byState[st].forEach(a=>{
+        const o=document.createElement('option');o.value=a.id;o.textContent=`[${a.tag}] ${a.name}`;
+        if(a.id===al.id)o.selected=true;
+        og.appendChild(o);
+      });
+      sel.appendChild(og);
     });
     sel.onchange=()=>{const picked=adminAlliances.find(x=>x.id===sel.value);if(picked)loadEditor(picked);};
   }else{sw.style.display='none';}
@@ -1473,6 +1509,7 @@ $('#importCfgFile').addEventListener('change', async(e)=>{
 
 // ── STATE RANKING EDITOR (admins only) ────────────────────────
 let rankCache=[];
+let rankState=PAGE_STATE; // which state's ranking we're editing
 function rankRowHTML(i,a={}){
   return `<div class="ditem" data-i="${i}" data-id="${a.id||''}">
     <div class="ditem-header"><span class="dtag">[${a.tag}] ${a.name}</span></div>
@@ -1482,12 +1519,24 @@ function rankRowHTML(i,a={}){
     </div>
   </div>`;
 }
+async function populateRankStatePicker(){
+  const sel=$('#rankStateSel'); if(!sel)return;
+  // list all states from the states table
+  const{data}=await sb.from('states').select('id').order('id');
+  const states=(data||[]).map(s=>String(s.id));
+  if(!states.includes(rankState))rankState=states[0]||'3139';
+  sel.innerHTML='';
+  states.forEach(st=>{const o=document.createElement('option');o.value=st;o.textContent='State '+st;if(st===rankState)o.selected=true;sel.appendChild(o);});
+  sel.onchange=()=>{rankState=sel.value;loadRankingEditor();};
+}
 async function loadRankingEditor(){
+  await populateRankStatePicker();
   const wrap=$('#rankRows');
   wrap.innerHTML='<p style="text-align:center;color:var(--muted);font-size:.84rem;padding:12px;">Loading…</p>';
-  const{data}=await sb.from('alliances').select('id,tag,name,state_rank,members').eq('state_id','3139').order('state_rank');
+  const{data}=await sb.from('alliances').select('id,tag,name,state_rank,members').eq('state_id',rankState).order('state_rank');
   rankCache=data||[];
   wrap.innerHTML='';
+  if(!rankCache.length){wrap.innerHTML='<p style="text-align:center;color:var(--muted);font-size:.84rem;padding:12px;">No alliances in this state yet.</p>';return;}
   rankCache.forEach((a,i)=>{const d=document.createElement('div');d.innerHTML=rankRowHTML(i,a);wrap.appendChild(d.firstElementChild);});
 };
 $('#saveRankBtn').onclick=async()=>{
@@ -1506,6 +1555,33 @@ $('#saveRankBtn').onclick=async()=>{
   if(errors.length){showErr('#rankErr','Some saves failed: '+errors[0]);}
   else{toast('Ranking saved ✓');loadRankingEditor();}
 };
+
+// ── CREATE NEW STATE (admins only, no SQL needed) ─────────────
+(function(){
+  const btn=document.getElementById('newStateBtn');
+  const form=document.getElementById('newStateForm');
+  const createBtn=document.getElementById('createStateBtn');
+  if(btn)btn.onclick=()=>{ if(form)form.style.display=form.style.display==='none'?'':'none'; };
+  if(createBtn)createBtn.onclick=async()=>{
+    hideErr('#newStateErr');
+    const num=(document.getElementById('newStateNum').value||'').trim();
+    if(!/^\d{3,5}$/.test(num)){showErr('#newStateErr','Enter a valid state number (3–5 digits).');return;}
+    createBtn.textContent='…';createBtn.disabled=true;
+    // does it already exist?
+    const{data:existing}=await sb.from('states').select('id').eq('id',num).maybeSingle();
+    if(existing){showErr('#newStateErr','That state already exists.');createBtn.textContent='Create';createBtn.disabled=false;return;}
+    // create the state row + a starter PXR alliance for it
+    const{error:e1}=await sb.from('states').insert({id:num,svs_wins:0,castle_history:[]});
+    if(e1){showErr('#newStateErr','Could not create state: '+e1.message);createBtn.textContent='Create';createBtn.disabled=false;return;}
+    await sb.from('alliances').insert({tag:'PXR',name:'Phoenix Rising',state_id:num,accent:'#ff7a2e',is_showcase:true,config:{}});
+    toast('State '+num+' created ✓');
+    document.getElementById('newStateNum').value='';
+    form.style.display='none';
+    rankState=num;
+    createBtn.textContent='Create';createBtn.disabled=false;
+    loadRankingEditor();
+  };
+})();
 
 // ── ACCESS MANAGEMENT (assign roles without SQL) ──────────────
 // ┌──────────────────────────────────────────────────────────┐

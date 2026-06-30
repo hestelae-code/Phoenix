@@ -566,21 +566,22 @@ const $=s=>document.querySelector(s);
 function T(k){return I18N[LANG]?.t[k]||I18N.en.t[k]||k;}
 
 // ── GLOBAL PROFILE HUB ────────────────────────────────────────
-// This page is the global login/profile center. It is NOT tied to any state.
+// This page is the global login/profile center, not tied to any state.
 // Each character carries its own state_id. PAGE_STATE is only a default
-// pre-selection when creating a new character (from folder path if present).
-const PAGE_STATE=(function(){
-  const m=location.pathname.match(/\/(\d{3,5})\/[^\/]*$/);
-  return m?m[1]:'3139';
-})();
-// Where each state's public pages live. Root state (3139) lives at /Phoenix/,
-// other states live in their own subfolder /Phoenix/<state>/.
+// pre-selection when creating a new character (taken from ?s= if present).
+function getState(){const s=new URLSearchParams(location.search).get('s');return (s&&/^\d{3,5}$/.test(s))?s:'3139';}
+const PAGE_STATE=getState();
+// Build a link to a state's public pages, carrying the state in the URL.
+// One set of files; state travels as ?s=. (Pretty URLs later = change here only.)
 function stateBasePath(stateId){
-  // Derive the repo base (everything up to and including /Phoenix/)
-  const path=location.pathname;
-  const idx=path.indexOf('/Phoenix/');
-  const base = idx>=0 ? path.slice(0, idx+9) : '/';
-  return String(stateId)==='3139' ? base : base+stateId+'/';
+  // base = the folder this profile lives in (everything up to the filename)
+  const base=location.pathname.replace(/[^/]*$/,'');
+  return {base, s:String(stateId)};
+}
+function statePublicUrl(stateId, page){
+  const s=String(stateId);
+  const base=location.pathname.replace(/[^/]*$/,'');
+  return s==='3139' ? base+page : base+page+(page.includes('?')?'&':'?')+'s='+s;
 }
 
 // ── SHOW ──────────────────────────────────────────────────────
@@ -815,7 +816,7 @@ function renderPicker(){
         <div class="pk-open" style="color:var(--acc,#ff7a2e);font-size:1.2rem;cursor:pointer;">›</div>`;
       card.querySelectorAll('.pk-open').forEach(el=>el.onclick=()=>selectProfile(p.id));
       const goto=card.querySelector('.pk-goto');
-      if(goto)goto.onclick=(e)=>{e.stopPropagation();const a2=alliances.find(x=>x.id===p.alliance_id);const base=stateBasePath(p.state_id);location.href = a2 ? `${base}phoenix-alliance.html?tag=${a2.tag}` : `${base}phoenix-state.html`;};
+      if(goto)goto.onclick=(e)=>{e.stopPropagation();const a2=alliances.find(x=>x.id===p.alliance_id);location.href = a2 ? statePublicUrl(p.state_id,`phoenix-alliance.html?tag=${a2.tag}`) : statePublicUrl(p.state_id,'phoenix-state.html');};
       list.appendChild(card);
     });
   });
